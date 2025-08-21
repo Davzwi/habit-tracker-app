@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusFlow - Mobile Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .preview-container {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    /* iPhone Frame */
+    .iphone-frame {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      background: #1a1a1a;
+      border-radius: 40px;
+      padding: 10px;
+      box-shadow: 
+        0 0 0 12px #2a2a2a,
+        0 0 0 14px #1a1a1a,
+        0 50px 100px rgba(0,0,0,0.5);
+    }
+    
+    .iphone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 30px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+    
+    /* Notch */
+    .notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 30px;
+      background: #1a1a1a;
+      border-radius: 0 0 20px 20px;
+      z-index: 1000;
+    }
+    
+    /* Status Bar */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      padding: 12px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 999;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .status-bar .time {
+      position: absolute;
+      left: 30px;
+    }
+    
+    .status-bar .icons {
+      position: absolute;
+      right: 30px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    
+    /* Home Indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 135px;
+      height: 5px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 100px;
+      z-index: 1000;
+    }
+    
+    /* App iframe */
+    .app-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    
+    /* Device Selector */
+    .device-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      background: rgba(255,255,255,0.1);
+      padding: 5px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .device-btn {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .device-btn.active {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .device-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    /* Info Panel */
+    .info-panel {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      color: white;
+    }
+    
+    .info-panel h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #fff, #f0f0f0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .info-panel .subtitle {
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 30px;
+    }
+    
+    .feature-list {
+      list-style: none;
+    }
+    
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    
+    .feature-text {
+      flex: 1;
+    }
+    
+    .feature-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .feature-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    /* Responsive */
+    @media (max-width: 900px) {
+      .preview-container {
+        flex-direction: column;
+      }
+      
+      .info-panel {
+        width: 100%;
+        max-width: 375px;
+      }
+    }
+    
+    /* Android Frame */
+    .android-frame {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      background: #000;
+      border-radius: 30px;
+      padding: 4px;
+      box-shadow: 
+        0 0 0 8px #2a2a2a,
+        0 50px 100px rgba(0,0,0,0.5);
+      display: none;
+    }
+    
+    .android-frame .iphone-screen {
+      border-radius: 26px;
+    }
+    
+    /* Mini Frame */
+    .mini-frame {
+      position: relative;
+      width: 320px;
+      height: 568px;
+      background: #1a1a1a;
+      border-radius: 35px;
+      padding: 8px;
+      box-shadow: 
+        0 0 0 10px #2a2a2a,
+        0 0 0 12px #1a1a1a,
+        0 40px 80px rgba(0,0,0,0.5);
+      display: none;
+    }
+    
+    .mini-frame .iphone-screen {
+      border-radius: 27px;
+    }
+    
+    .mini-frame .notch {
+      display: none;
+    }
+    
+    .battery-icon {
+      width: 24px;
+      height: 12px;
+      border: 1px solid white;
+      border-radius: 2px;
+      position: relative;
+      padding: 1px;
+    }
+    
+    .battery-icon::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: 3px;
+      width: 2px;
+      height: 6px;
+      background: white;
+      border-radius: 0 1px 1px 0;
+    }
+    
+    .battery-fill {
+      width: 70%;
+      height: 100%;
+      background: white;
+      border-radius: 1px;
+    }
+    
+    .signal-icon {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+    }
+    
+    .signal-bar {
+      width: 3px;
+      background: white;
+      border-radius: 1px;
+    }
+    
+    .signal-bar:nth-child(1) { height: 4px; }
+    .signal-bar:nth-child(2) { height: 6px; }
+    .signal-bar:nth-child(3) { height: 8px; }
+    .signal-bar:nth-child(4) { height: 10px; }
+    
+    .wifi-icon {
+      width: 15px;
+      height: 15px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z'/%3E%3C/svg%3E") center no-repeat;
+      background-size: contain;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <!-- Phone Frame -->
+    <div class="iphone-frame" id="phoneFrame">
+      <div class="iphone-screen">
+        <!-- Notch -->
+        <div class="notch"></div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <div class="signal-icon">
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+            </div>
+            <div class="wifi-icon"></div>
+            <div class="battery-icon">
+              <div class="battery-fill"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- App Content -->
+        <iframe src="index.html" class="app-iframe"></iframe>
+        
+        <!-- Home Indicator -->
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    
+    <!-- Android Frame (hidden by default) -->
+    <div class="android-frame" id="androidFrame">
+      <div class="iphone-screen">
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <div class="signal-icon">
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+            </div>
+            <div class="wifi-icon"></div>
+            <div class="battery-icon">
+              <div class="battery-fill"></div>
+            </div>
+          </div>
+        </div>
+        <iframe src="index.html" class="app-iframe"></iframe>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    
+    <!-- Mini iPhone Frame (hidden by default) -->
+    <div class="mini-frame" id="miniFrame">
+      <div class="iphone-screen">
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <div class="battery-icon">
+              <div class="battery-fill"></div>
+            </div>
+          </div>
+        </div>
+        <iframe src="index.html" class="app-iframe"></iframe>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    
+    <!-- Info Panel -->
+    <div class="info-panel">
+      <div class="device-selector">
+        <button class="device-btn active" onclick="switchDevice('iphone')">iPhone 14</button>
+        <button class="device-btn" onclick="switchDevice('android')">Android</button>
+        <button class="device-btn" onclick="switchDevice('mini')">iPhone SE</button>
+      </div>
+      
+      <h2>FocusFlow</h2>
+      <p class="subtitle">Deine persönliche Self-Improvement App</p>
+      
+      <ul class="feature-list">
+        <li>
+          <div class="feature-icon">🎯</div>
+          <div class="feature-text">
+            <div class="feature-title">Tägliche Ziele</div>
+            <div class="feature-desc">Verfolge deine Fortschritte</div>
+          </div>
+        </li>
+        <li>
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Challenges</div>
+            <div class="feature-desc">7-Tage Herausforderungen</div>
+          </div>
+        </li>
+        <li>
+          <div class="feature-icon">📊</div>
+          <div class="feature-text">
+            <div class="feature-title">Statistiken</div>
+            <div class="feature-desc">Visualisiere deinen Erfolg</div>
+          </div>
+        </li>
+        <li>
+          <div class="feature-icon">📅</div>
+          <div class="feature-text">
+            <div class="feature-title">Planer</div>
+            <div class="feature-desc">Organisiere deinen Tag</div>
+          </div>
+        </li>
+        <li>
+          <div class="feature-icon">🔍</div>
+          <div class="feature-text">
+            <div class="feature-title">Entdecken</div>
+            <div class="feature-desc">Neue Inhalte & Tipps</div>
+          </div>
+        </li>
+      </ul>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <p style="font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5;">
+          Entwickelt mit modernem Design und optimiert für iOS & Android. 
+          Native Performance mit Web-Technologie.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function switchDevice(device) {
+      // Hide all frames
+      document.getElementById('phoneFrame').style.display = 'none';
+      document.getElementById('androidFrame').style.display = 'none';
+      document.getElementById('miniFrame').style.display = 'none';
+      
+      // Remove active class from all buttons
+      document.querySelectorAll('.device-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected frame and activate button
+      if (device === 'iphone') {
+        document.getElementById('phoneFrame').style.display = 'block';
+        document.querySelectorAll('.device-btn')[0].classList.add('active');
+      } else if (device === 'android') {
+        document.getElementById('androidFrame').style.display = 'block';
+        document.querySelectorAll('.device-btn')[1].classList.add('active');
+      } else if (device === 'mini') {
+        document.getElementById('miniFrame').style.display = 'block';
+        document.querySelectorAll('.device-btn')[2].classList.add('active');
+      }
+    }
+    
+    // Update time
+    function updateTime() {
+      const now = new Date();
+      const time = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      document.querySelectorAll('.time').forEach(el => {
+        el.textContent = time;
+      });
+    }
+    
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>

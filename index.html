@@ -175,9 +175,20 @@
       filter: none;
     }
     .header-actions{display:flex;gap:12px;}
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      justify-content: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
     .header-btn{
-      width:44px;
+      min-width:44px;
       height:44px;
+      flex: 0 0 auto;
       background: var(--glass);
       backdrop-filter: blur(10px);
       border:1px solid var(--glass-border);
@@ -756,13 +767,15 @@
       font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       color: rgba(75, 123, 236, 0.6);
       display: flex;
       align-items: center;
-      gap: 16px;
+      justify-content: center;
+      gap: 12px;
       position: relative;
       margin-bottom: 2px;
+      flex: 0 0 auto;
     }
 
     #yearText {
@@ -816,7 +829,7 @@
     }
 
     .month-display {
-      font-size: 42px;
+      font-size: 32px;
       font-weight: 900;
       background: linear-gradient(92deg, 
         #ffffff 0%, 
@@ -825,15 +838,18 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: -2px;
+      letter-spacing: -1px;
       display: flex;
       align-items: center;
-      gap: 36px;
+      justify-content: center;
+      gap: 24px;
       position: relative;
       text-transform: capitalize;
       margin-top: 4px;
       animation: shimmer 3s ease-in-out infinite;
       background-size: 200% 100%;
+      flex: 1;
+      max-width: 200px;
     }
     
     @keyframes shimmer {
@@ -1266,6 +1282,7 @@
       opacity: 0;
       transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       z-index: 1000;
+      min-width: 240px;
     }
     
     .add-menu.active {
@@ -1277,11 +1294,11 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 16px 20px;
+      padding: 14px 18px;
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
-      min-width: 200px;
+      position: relative;
     }
     
     .add-menu-item:hover {
@@ -1289,7 +1306,11 @@
     }
     
     .add-menu-item:active {
-      transform: scale(0.95);
+      transform: scale(0.98);
+    }
+    
+    .add-menu-item:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
     
     .add-menu-icon {
@@ -1311,6 +1332,10 @@
     
     .add-menu-icon.challenge {
       background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+    
+    .add-menu-icon.note {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
     }
     
     .add-menu-text {
@@ -1409,50 +1434,52 @@
 
     <div class="calendar-container">
       <div class="month-bar">
-        <button class="nav-btn" id="prevMonth" title="Vorheriger Monat">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        
-        <div class="date-display">
-          <div class="year-display" id="yearDisplay">
-            <button class="year-btn" id="prevYear" title="Vorheriges Jahr">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <span id="yearText">2024</span>
-            <button class="year-btn" id="nextYear" title="Nächstes Jahr">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+        <div class="header-nav">
+          <button class="nav-btn" id="prevMonth" title="Vorheriger Monat">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          
+          <div class="date-display">
+            <div class="year-display" id="yearDisplay">
+              <button class="year-btn" id="prevYear" title="Vorheriges Jahr">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <span id="yearText">2024</span>
+              <button class="year-btn" id="nextYear" title="Nächstes Jahr">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="month-display" id="monthDisplay" onclick="showMonthPicker()" style="cursor: pointer;">
+              <span id="monthName">Dezember</span>
+            </div>
+            <div class="month-dots">
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot"></span>
+              <span class="month-dot active"></span>
+            </div>
           </div>
-          <div class="month-display" id="monthDisplay" onclick="showMonthPicker()" style="cursor: pointer;">
-            <span id="monthName">Dezember</span>
-          </div>
-          <div class="month-dots">
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot"></span>
-            <span class="month-dot active"></span>
-          </div>
+          
+          <button class="nav-btn" id="nextMonth" title="Nächster Monat">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
-        
-        <button class="nav-btn" id="nextMonth" title="Nächster Monat">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
         
         <!-- Heute Button in Navigation -->
         <button class="today-btn-nav" onclick="goToToday()" title="Zu heute springen">
@@ -1685,6 +1712,13 @@
         <div class="add-menu-text">
           <div class="add-menu-title">Add Challenge</div>
           <div class="add-menu-subtitle">Neue Herausforderung</div>
+        </div>
+      </div>
+      <div class="add-menu-item" onclick="addNote()">
+        <div class="add-menu-icon note">📝</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Note</div>
+          <div class="add-menu-subtitle">Notiz hinzufügen</div>
         </div>
       </div>
     </div>
@@ -2068,6 +2102,13 @@
       console.log('Add Challenge clicked');
       // Hier würde das Challenge-Modal geöffnet
       alert('Challenge hinzufügen - Modal würde sich öffnen');
+    }
+    
+    function addNote() {
+      closeAddMenu();
+      console.log('Add Note clicked');
+      // Hier würde das Note-Modal geöffnet
+      alert('Notiz hinzufügen - Modal würde sich öffnen');
     }
     
     // Month Picker Functions

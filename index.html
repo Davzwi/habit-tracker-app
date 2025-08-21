@@ -178,11 +178,10 @@
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex: 1;
+      gap: 8px;
       justify-content: center;
-      max-width: 600px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 800px;
     }
     
     .header-btn{
@@ -320,6 +319,112 @@
     .time-block{
       padding:0 16px;
       margin-bottom:32px;
+    }
+    
+    /* Habits Grid Container */
+    .habits-section {
+      padding: 0 16px;
+      margin-bottom: 32px;
+    }
+    
+    .habits-header {
+      margin-bottom: 16px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .habits-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-tertiary);
+    }
+    
+    .habits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+    }
+    
+    .habit-card {
+      background: var(--glass);
+      border-radius: 16px;
+      padding: 16px 12px;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      min-height: 100px;
+    }
+    
+    .habit-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .habit-card:active {
+      transform: scale(0.98);
+    }
+    
+    .habit-card.completed {
+      background: rgba(75, 123, 236, 0.1);
+      border-color: var(--primary);
+    }
+    
+    .habit-icon {
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+    
+    .habit-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: center;
+      line-height: 1.2;
+    }
+    
+    .habit-streak {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    
+    .habit-check {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--glass-border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    
+    .habit-card.completed .habit-check {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .habit-card.completed .habit-check::after {
+      content: '✓';
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
     }
     .time-header{
       margin-bottom:20px;
@@ -710,7 +815,7 @@
     .month-bar{
       display:flex; 
       align-items:center; 
-      justify-content:space-between; 
+      justify-content:center; 
       padding: 36px 20px 28px;
       position: relative;
       background: var(--bg-primary);
@@ -739,20 +844,19 @@
       align-items: center;
       gap: 4px;
       position: relative;
-      padding: 20px 60px;
+      padding: 16px 40px;
       background: linear-gradient(135deg, 
         rgba(75, 123, 236, 0.08) 0%, 
         rgba(75, 123, 236, 0.02) 100%);
-      border-radius: 32px;
+      border-radius: 24px;
       border: 1px solid rgba(75, 123, 236, 0.15);
       backdrop-filter: blur(40px);
       box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.25),
-        0 0 80px rgba(75, 123, 236, 0.15),
+        0 10px 20px rgba(0, 0, 0, 0.15),
+        0 0 40px rgba(75, 123, 236, 0.1),
         inset 0 2px 4px rgba(255, 255, 255, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      flex: 1;
-      margin: 0 12px;
+      flex: 0 1 auto;
     }
     
     .date-display:hover {
@@ -977,7 +1081,8 @@
       box-shadow: 
         0 8px 24px rgba(75, 123, 236, 0.3),
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
-      flex-shrink: 0;
+      flex: 0 0 auto;
+      margin-left: 8px;
     }
     
     .today-btn-nav:hover {
@@ -1494,6 +1599,51 @@
     <div class="date-selector" id="dateSelector"></div>
 
     <div class="content" id="content">
+      <!-- Habits Section -->
+      <div class="habits-section">
+        <div class="habits-header">
+          <div class="habits-title">Tägliche Gewohnheiten</div>
+        </div>
+        <div class="habits-grid">
+          <div class="habit-card" onclick="toggleHabit(this)">
+            <div class="habit-check"></div>
+            <div class="habit-icon">💧</div>
+            <div class="habit-name">Wasser trinken</div>
+            <div class="habit-streak">
+              <span>🔥</span>
+              <span>5</span>
+            </div>
+          </div>
+          <div class="habit-card" onclick="toggleHabit(this)">
+            <div class="habit-check"></div>
+            <div class="habit-icon">🧘</div>
+            <div class="habit-name">Meditation</div>
+            <div class="habit-streak">
+              <span>🔥</span>
+              <span>12</span>
+            </div>
+          </div>
+          <div class="habit-card" onclick="toggleHabit(this)">
+            <div class="habit-check"></div>
+            <div class="habit-icon">📚</div>
+            <div class="habit-name">Lesen</div>
+            <div class="habit-streak">
+              <span>🔥</span>
+              <span>3</span>
+            </div>
+          </div>
+          <div class="habit-card" onclick="toggleHabit(this)">
+            <div class="habit-check"></div>
+            <div class="habit-icon">🏃</div>
+            <div class="habit-name">Sport</div>
+            <div class="habit-streak">
+              <span>🔥</span>
+              <span>7</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- Demo Content -->
       <div class="time-block">
         <div class="time-header">
@@ -2109,6 +2259,26 @@
       console.log('Add Note clicked');
       // Hier würde das Note-Modal geöffnet
       alert('Notiz hinzufügen - Modal würde sich öffnen');
+    }
+    
+    // Toggle Habit Completion
+    function toggleHabit(card) {
+      card.classList.toggle('completed');
+      
+      // Save to localStorage
+      const habitName = card.querySelector('.habit-name').textContent;
+      const dateKey = `habit_${selectedDate.toISOString().split('T')[0]}_${habitName}`;
+      const isCompleted = card.classList.contains('completed');
+      
+      localStorage.setItem(dateKey, isCompleted);
+      
+      // Animation
+      if (isCompleted) {
+        card.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+          card.style.transform = '';
+        }, 200);
+      }
     }
     
     // Month Picker Functions

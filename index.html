@@ -1233,6 +1233,102 @@
       margin-bottom: 20px;
     }
     
+    /* Add Menu Overlay */
+    .add-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    .add-menu-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    /* Add Menu */
+    .add-menu {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1000;
+    }
+    
+    .add-menu.active {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    
+    .add-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 200px;
+    }
+    
+    .add-menu-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .add-menu-item:active {
+      transform: scale(0.95);
+    }
+    
+    .add-menu-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    
+    .add-menu-icon.task {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .add-menu-icon.habit {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+    
+    .add-menu-icon.challenge {
+      background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+    
+    .add-menu-text {
+      flex: 1;
+    }
+    
+    .add-menu-title {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+    
+    .add-menu-subtitle {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    
     .add-button-inner {
       width: 60px;
       height: 60px;
@@ -1538,8 +1634,8 @@
       </div>
       
       <!-- Central Add Button -->
-      <div class="tab-add-button" onclick="openAddModal()">
-        <div class="add-button-inner">
+      <div class="tab-add-button" onclick="toggleAddMenu()">
+        <div class="add-button-inner" id="addButtonInner">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
@@ -1565,6 +1661,33 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Add Menu Overlay -->
+  <div class="add-menu-overlay" id="addMenuOverlay" onclick="closeAddMenu()">
+    <div class="add-menu" id="addMenu" onclick="event.stopPropagation()">
+      <div class="add-menu-item" onclick="addTask()">
+        <div class="add-menu-icon task">✓</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Task</div>
+          <div class="add-menu-subtitle">Neue Aufgabe hinzufügen</div>
+        </div>
+      </div>
+      <div class="add-menu-item" onclick="addHabit()">
+        <div class="add-menu-icon habit">🔥</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Habit</div>
+          <div class="add-menu-subtitle">Neue Gewohnheit starten</div>
+        </div>
+      </div>
+      <div class="add-menu-item" onclick="addChallenge()">
+        <div class="add-menu-icon challenge">⚡</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Challenge</div>
+          <div class="add-menu-subtitle">Neue Herausforderung</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1893,6 +2016,7 @@
       
       // Here you would switch the content based on the tab
       console.log('Switching to tab:', tabName);
+      closeAddMenu(); // Close menu when switching tabs
       
       // For now, just show an alert
       if (tabName !== 'home') {
@@ -1900,9 +2024,50 @@
       }
     }
     
-    function openAddModal() {
-      alert('Add New Task/Habit - Modal würde sich öffnen');
-      // Here you would open a modal to add new tasks or habits
+    // Add Menu Functions
+    let addMenuOpen = false;
+    
+    function toggleAddMenu() {
+      if (addMenuOpen) {
+        closeAddMenu();
+      } else {
+        openAddMenu();
+      }
+    }
+    
+    function openAddMenu() {
+      addMenuOpen = true;
+      document.getElementById('addMenuOverlay').classList.add('active');
+      document.getElementById('addMenu').classList.add('active');
+      document.getElementById('addButtonInner').style.transform = 'rotate(45deg)';
+    }
+    
+    function closeAddMenu() {
+      addMenuOpen = false;
+      document.getElementById('addMenuOverlay').classList.remove('active');
+      document.getElementById('addMenu').classList.remove('active');
+      document.getElementById('addButtonInner').style.transform = 'rotate(0deg)';
+    }
+    
+    function addTask() {
+      closeAddMenu();
+      console.log('Add Task clicked');
+      // Hier würde das Task-Modal geöffnet
+      alert('Task hinzufügen - Modal würde sich öffnen');
+    }
+    
+    function addHabit() {
+      closeAddMenu();
+      console.log('Add Habit clicked');
+      // Hier würde das Habit-Modal geöffnet
+      alert('Habit hinzufügen - Modal würde sich öffnen');
+    }
+    
+    function addChallenge() {
+      closeAddMenu();
+      console.log('Add Challenge clicked');
+      // Hier würde das Challenge-Modal geöffnet
+      alert('Challenge hinzufügen - Modal würde sich öffnen');
     }
     
     // Month Picker Functions

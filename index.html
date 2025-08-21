@@ -217,10 +217,13 @@
 
     /* Calendar glass container */
     .calendar-container{
-      background: var(--bg-secondary);
-      backdrop-filter: blur(8px);
+      background: transparent;
       border-bottom:1px solid var(--glass-border);
       padding:8px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-primary);
     }
 
     /* Date selector with minimal cards */
@@ -308,16 +311,33 @@
     /* Content */
     .content{
       flex:1;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-      padding-bottom:120px;
+      overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
     }
-    .content::-webkit-scrollbar{display:none;}
 
     /* View Containers */
     .view-container {
       width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Timeline specific styles */
+    #timelineView {
+      overflow: hidden;
+    }
+    
+    .timeline-scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 100px;
+    }
+    
+    .timeline-scroll-container::-webkit-scrollbar {
+      display: none;
     }
     
     /* Home View Styles */
@@ -1621,10 +1641,6 @@
       color: white;
     }
     
-    /* Adjust content for tab bar */
-    .content {
-      padding-bottom: 100px;
-    }
     
     /* Desktop */
     @media (min-width: 768px) {
@@ -1666,67 +1682,6 @@
 
   <div class="app">
 
-    <div class="calendar-container">
-      <div class="month-bar">
-        <div class="header-nav">
-          <button class="nav-btn" id="prevMonth" title="Vorheriger Monat">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          
-          <div class="date-display">
-            <div class="year-display" id="yearDisplay">
-              <button class="year-btn" id="prevYear" title="Vorheriges Jahr">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-              <span id="yearText">2024</span>
-              <button class="year-btn" id="nextYear" title="Nächstes Jahr">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-            </div>
-            <div class="month-display" id="monthDisplay" onclick="showMonthPicker()" style="cursor: pointer;">
-              <span id="monthName">Dezember</span>
-            </div>
-            <div class="month-dots">
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot"></span>
-              <span class="month-dot active"></span>
-            </div>
-          </div>
-          
-          <button class="nav-btn" id="nextMonth" title="Nächster Monat">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        
-        <!-- Heute Button in Navigation -->
-        <button class="today-btn-nav" onclick="goToToday()" title="Zu heute springen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 4"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="date-selector" id="dateSelector"></div>
-
     <!-- Content Container for different views -->
     <div class="content" id="content">
       
@@ -1753,7 +1708,71 @@
       
       <!-- Timeline View (Current Tasks View) -->
       <div class="view-container" id="timelineView">
-        <div class="time-block">
+        <!-- Timeline Navigation and Calendar -->
+        <div class="calendar-container">
+          <div class="month-bar">
+            <div class="header-nav">
+              <button class="nav-btn" id="prevMonth" title="Vorheriger Monat">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              
+              <div class="date-display">
+                <div class="year-display" id="yearDisplay">
+                  <button class="year-btn" id="prevYear" title="Vorheriges Jahr">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                  <span id="yearText">2024</span>
+                  <button class="year-btn" id="nextYear" title="Nächstes Jahr">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="month-display" id="monthDisplay" onclick="showMonthPicker()" style="cursor: pointer;">
+                  <span id="monthName">Dezember</span>
+                </div>
+                <div class="month-dots">
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot"></span>
+                  <span class="month-dot active"></span>
+                </div>
+              </div>
+              
+              <button class="nav-btn" id="nextMonth" title="Nächster Monat">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Heute Button in Navigation -->
+            <button class="today-btn-nav" onclick="goToToday()" title="Zu heute springen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 4"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="date-selector" id="dateSelector"></div>
+        
+        <!-- Timeline Content -->
+        <div class="timeline-scroll-container">
+          <div class="time-block">
         <div class="time-header">
           <div class="time-header-title">
             <div class="time-label">Morgen</div>
@@ -1896,6 +1915,7 @@
           <div class="task-check" style="pointer-events: none; opacity: 0.5;"></div>
         </div>
       </div>
+        </div>
       </div>
       
       <!-- Stats View -->

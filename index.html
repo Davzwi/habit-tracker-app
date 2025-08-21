@@ -320,96 +320,6 @@
       padding:0 16px;
       margin-bottom:32px;
     }
-    
-    /* Habits Grid Container */
-    .habits-section {
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .habits-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 12px;
-    }
-    
-    .habit-card {
-      background: var(--glass);
-      border-radius: 16px;
-      padding: 16px 12px;
-      border: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      min-height: 100px;
-    }
-    
-    .habit-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
-    
-    .habit-card:active {
-      transform: scale(0.98);
-    }
-    
-    .habit-card.completed {
-      background: rgba(75, 123, 236, 0.1);
-      border-color: var(--primary);
-    }
-    
-    .habit-icon {
-      font-size: 28px;
-      margin-bottom: 4px;
-    }
-    
-    .habit-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-primary);
-      text-align: center;
-      line-height: 1.2;
-    }
-    
-    .habit-streak {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      font-size: 11px;
-    }
-    
-    .habit-check {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--glass-border);
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: transparent;
-      transition: all 0.2s;
-    }
-    
-    .habit-card.completed .habit-check {
-      background: var(--primary);
-      border-color: var(--primary);
-    }
-    
-    .habit-card.completed .habit-check::after {
-      content: '✓';
-      color: white;
-      font-size: 10px;
-      font-weight: bold;
-    }
     .time-header{
       margin-bottom:20px;
       padding:0;
@@ -1556,48 +1466,6 @@
     <div class="date-selector" id="dateSelector"></div>
 
     <div class="content" id="content">
-      <!-- Habits Section -->
-      <div class="habits-section">
-        <div class="habits-grid">
-          <div class="habit-card" onclick="toggleHabit(this)">
-            <div class="habit-check"></div>
-            <div class="habit-icon">💧</div>
-            <div class="habit-name">Wasser trinken</div>
-            <div class="habit-streak">
-              <span>🔥</span>
-              <span>5</span>
-            </div>
-          </div>
-          <div class="habit-card" onclick="toggleHabit(this)">
-            <div class="habit-check"></div>
-            <div class="habit-icon">🧘</div>
-            <div class="habit-name">Meditation</div>
-            <div class="habit-streak">
-              <span>🔥</span>
-              <span>12</span>
-            </div>
-          </div>
-          <div class="habit-card" onclick="toggleHabit(this)">
-            <div class="habit-check"></div>
-            <div class="habit-icon">📚</div>
-            <div class="habit-name">Lesen</div>
-            <div class="habit-streak">
-              <span>🔥</span>
-              <span>3</span>
-            </div>
-          </div>
-          <div class="habit-card" onclick="toggleHabit(this)">
-            <div class="habit-check"></div>
-            <div class="habit-icon">🏃</div>
-            <div class="habit-name">Sport</div>
-            <div class="habit-streak">
-              <span>🔥</span>
-              <span>7</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
       <!-- Demo Content -->
       <div class="time-block">
         <div class="time-header">
@@ -2213,26 +2081,6 @@
       console.log('Add Note clicked');
       // Hier würde das Note-Modal geöffnet
       alert('Notiz hinzufügen - Modal würde sich öffnen');
-    }
-    
-    // Toggle Habit Completion
-    function toggleHabit(card) {
-      card.classList.toggle('completed');
-      
-      // Save to localStorage
-      const habitName = card.querySelector('.habit-name').textContent;
-      const dateKey = `habit_${selectedDate.toISOString().split('T')[0]}_${habitName}`;
-      const isCompleted = card.classList.contains('completed');
-      
-      localStorage.setItem(dateKey, isCompleted);
-      
-      // Animation
-      if (isCompleted) {
-        card.style.transform = 'scale(1.05)';
-        setTimeout(() => {
-          card.style.transform = '';
-        }, 200);
-      }
     }
     
     // Month Picker Functions

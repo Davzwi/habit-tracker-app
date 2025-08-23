@@ -3062,22 +3062,22 @@
     }
 
     // Initialize SVG icons
-    function initializeSVGIcons() {
+    async function initializeSVGIcons() {
       console.log('Initializing SVG icons...');
-      
+
       // Specifically target timeline icons first with aggressive styling
       const timelineIcons = document.querySelectorAll('.timeline-item-icon[data-icon]');
       console.log('Found timeline icons:', timelineIcons.length);
-      
-      timelineIcons.forEach(element => {
+
+      for (const element of timelineIcons) {
         const iconName = element.dataset.icon;
         console.log('Loading timeline icon:', iconName);
-        const svgContent = getSVGIcon(iconName);
+        const svgContent = await getSVGIcon(iconName);
         if (svgContent) {
           // Clear and set content
           element.innerHTML = '';
           element.innerHTML = svgContent;
-          
+
           // Force SVG to be visible with important styles
           const svg = element.querySelector('svg');
           if (svg) {
@@ -3088,20 +3088,20 @@
             svg.setAttribute('fill', 'none');
             svg.setAttribute('stroke', 'white');
             svg.setAttribute('stroke-width', '2');
-            
+
             // Apply aggressive inline styles
             svg.style.cssText = 'display: block !important; width: 20px !important; height: 20px !important; stroke: white !important; stroke-width: 2 !important; fill: none !important; opacity: 1 !important; visibility: visible !important; position: relative !important; z-index: 1 !important;';
           }
         }
-      });
-      
+      }
+
       // Then handle other icons
       const otherIcons = document.querySelectorAll('[data-icon]:not(.timeline-item-icon)');
       console.log('Found other icons:', otherIcons.length);
-      
-      otherIcons.forEach(element => {
+
+      for (const element of otherIcons) {
         const iconName = element.dataset.icon;
-        const svgContent = getSVGIcon(iconName);
+        const svgContent = await getSVGIcon(iconName);
         if (svgContent) {
           element.innerHTML = svgContent;
           const svg = element.querySelector('svg');
@@ -3115,7 +3115,7 @@
             svg.style.opacity = '1';
           }
         }
-      });
+      }
     }
     
     // Update active tasks based on current time
@@ -3454,8 +3454,20 @@
       '💵': 'chart'
     };
     
-    // Helper function to get SVG icon
-    function getSVGIcon(name) {
+    // Helper function to get SVG icon, prefer loading from src/icons
+    const iconCache = {};
+    async function getSVGIcon(name) {
+      if (iconCache[name]) return iconCache[name];
+      try {
+        const response = await fetch(`src/icons/${name}.svg`);
+        if (response.ok) {
+          const svg = await response.text();
+          iconCache[name] = svg;
+          return svg;
+        }
+      } catch (err) {
+        console.error('Failed to load icon', name, err);
+      }
       return svgIcons[name] || svgIcons.star;
     }
     
@@ -4050,11 +4062,12 @@
       }
       
       // Initialize SVG icons for modal items
-      setTimeout(() => {
-        document.querySelectorAll('#modalItems [data-icon]').forEach(element => {
+      setTimeout(async () => {
+        const elements = document.querySelectorAll('#modalItems [data-icon]');
+        for (const element of elements) {
           const iconName = element.dataset.icon;
-          element.innerHTML = getSVGIcon(iconName);
-        });
+          element.innerHTML = await getSVGIcon(iconName);
+        }
       }, 10);
     }
     

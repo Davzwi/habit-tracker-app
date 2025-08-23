@@ -1918,9 +1918,8 @@
       width: 36px !important;
       height: 36px !important;
       border-radius: 10px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -1930,6 +1929,7 @@
       position: relative;
       overflow: visible !important;
       z-index: 5 !important;
+      color: #FFFFFF !important;
     }
     
     .timeline-item-icon svg {
@@ -1937,7 +1937,7 @@
       height: 20px !important;
       min-width: 20px !important;
       min-height: 20px !important;
-      stroke: white !important;
+      stroke: #FFFFFF !important;
       stroke-width: 2 !important;
       fill: none !important;
       stroke-linecap: round;
@@ -1946,9 +1946,21 @@
       opacity: 1 !important;
       visibility: visible !important;
       display: block !important;
-      color: white !important;
+      color: #FFFFFF !important;
       position: relative !important;
       z-index: 10 !important;
+    }
+    
+    /* Force all SVG elements in timeline icons to be white */
+    .timeline-item-icon svg path,
+    .timeline-item-icon svg line,
+    .timeline-item-icon svg circle,
+    .timeline-item-icon svg rect,
+    .timeline-item-icon svg polygon,
+    .timeline-item-icon svg polyline {
+      stroke: #FFFFFF !important;
+      fill: none !important;
+      opacity: 1 !important;
     }
     
     .timeline-item-icon.filled svg {
@@ -3090,16 +3102,16 @@
           const svg = element.querySelector('svg');
           if (svg) {
             console.log(`Styling SVG for ${iconName}`);
-            // Set attributes directly
+            // Set attributes directly - FORCE WHITE STROKE
             svg.setAttribute('width', '20');
             svg.setAttribute('height', '20');
             svg.setAttribute('viewBox', '0 0 24 24');
             svg.setAttribute('fill', 'none');
-            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('stroke', '#FFFFFF');
             svg.setAttribute('stroke-width', '2');
             
-            // Apply aggressive inline styles
-            svg.style.cssText = 'display: block !important; width: 20px !important; height: 20px !important; color: white !important; stroke: currentColor !important; stroke-width: 2 !important; fill: none !important; opacity: 1 !important; visibility: visible !important; position: relative !important; z-index: 1 !important;';
+            // Apply aggressive inline styles - FORCE WHITE COLOR
+            svg.style.cssText = 'display: block !important; width: 20px !important; height: 20px !important; stroke: #FFFFFF !important; stroke-width: 2 !important; fill: none !important; opacity: 1 !important; visibility: visible !important; position: relative !important; z-index: 1 !important;';
             
             // Also ensure parent is visible
             element.style.display = 'flex';

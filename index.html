@@ -311,6 +311,19 @@
       font-weight:700;
       line-height: 1;
     }
+
+    .date-icons{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:2px;
+      margin-top:2px;
+    }
+
+    .date-icons span{
+      font-size:12px;
+      line-height:1;
+    }
     .date-item.active .date-day,
     .date-item.active .date-num{
       color: white;
@@ -1187,33 +1200,37 @@
       opacity: 0.9;
     }
     
-    /* Year Navigation (Hidden) */
-    .year-display {
-      display: none;
-    }
-
+    /* Year Navigation */
+    .year-display,
     .year-nav {
-      display: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .year-btn {
-      display: none;
-      background: rgba(75, 123, 236, 0.15);
-      border-color: rgba(75, 123, 236, 0.3);
-      transform: scale(1.2);
-      opacity: 1;
-      box-shadow: 0 0 12px rgba(75, 123, 236, 0.3);
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
     .year-btn:active {
-      transform: scale(0.92);
-      transition: transform 0.05s ease;
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(0.95);
     }
 
     .year-btn svg {
       width: 12px;
       height: 12px;
-      stroke-width: 2.5;
+      stroke-width: 2;
     }
 
     .month-display {
@@ -2638,18 +2655,30 @@
         <div class="calendar-container">
           <div class="month-bar">
             <div class="date-display">
-              <button class="nav-btn" id="prevMonth" title="Vorheriger Monat" onclick="changeMonth(-1)">
+              <button class="nav-btn" id="prevMonth" title="Vorheriger Monat">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M15 18l-6-6 6-6"/>
                 </svg>
               </button>
-              
+
               <div class="date-text-container" onclick="showMonthPicker()">
                 <span class="month-text" id="monthName">Dezember</span>
-                <span class="year-text" id="yearText">2024</span>
+                <div class="year-nav year-display" id="yearDisplay">
+                  <button class="year-btn" id="prevYear" title="Vorheriges Jahr">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                  </button>
+                  <span class="year-text" id="yearText">2024</span>
+                  <button class="year-btn" id="nextYear" title="Nächstes Jahr">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 18l6-6 6-6"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
-              
-              <button class="nav-btn" id="nextMonth" title="Nächster Monat" onclick="changeMonth(1)">
+
+              <button class="nav-btn" id="nextMonth" title="Nächster Monat">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M9 18l6-6 6-6"/>
                 </svg>
@@ -3682,6 +3711,16 @@
       updateCalendarDisplay();
       generateDateSelector();
     }
+    
+    function getIconsForDate(date) {
+      const dateStr = date.toISOString().split('T')[0];
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const habits = JSON.parse(localStorage.getItem('habits') || '[]');
+      const icons = [];
+      tasks.filter(t => t.date === dateStr).forEach(t => icons.push(t.icon));
+      habits.filter(h => h.date === dateStr).forEach(h => icons.push(h.icon));
+      return icons.slice(0,3);
+    }
 
     function generateDateSelector() {
       const selector = document.getElementById('dateSelector');
@@ -3704,6 +3743,18 @@
           <div class="date-day">${dayNames[date.getDay()]}</div>
           <div class="date-num">${day}</div>
         `;
+
+        const icons = getIconsForDate(date);
+        if (icons.length) {
+          const iconBar = document.createElement('div');
+          iconBar.className = 'date-icons';
+          icons.forEach(ic => {
+            const span = document.createElement('span');
+            span.textContent = ic;
+            iconBar.appendChild(span);
+          });
+          item.appendChild(iconBar);
+        }
 
         item.addEventListener('click', () => {
           const prev = selector.querySelector('.date-item.active');
@@ -4341,7 +4392,9 @@
       if (currentView === 'timeline' && item.date === selectedDate.toISOString().split('T')[0]) {
         generateTimelineItems();
       }
-      
+
+      generateDateSelector();
+
       // Show success message
       showSuccessMessage(`${customModalType === 'task' ? 'Aufgabe' : 'Gewohnheit'} "${name}" wurde erstellt!`);
     }

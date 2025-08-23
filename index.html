@@ -1187,33 +1187,48 @@
       opacity: 0.9;
     }
     
-    /* Year Navigation (Hidden) */
-    .year-display {
-      display: none;
+    /* Year Navigation */
+    .year-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
     }
 
-    .year-nav {
-      display: none;
+    .year-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
     }
 
     .year-btn {
-      display: none;
-      background: rgba(75, 123, 236, 0.15);
-      border-color: rgba(75, 123, 236, 0.3);
-      transform: scale(1.2);
-      opacity: 1;
-      box-shadow: 0 0 12px rgba(75, 123, 236, 0.3);
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(10px);
     }
 
     .year-btn:active {
-      transform: scale(0.92);
-      transition: transform 0.05s ease;
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(0.95);
     }
 
     .year-btn svg {
-      width: 12px;
-      height: 12px;
-      stroke-width: 2.5;
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
     }
 
     .month-display {
@@ -2646,7 +2661,6 @@
               
               <div class="date-text-container" onclick="showMonthPicker()">
                 <span class="month-text" id="monthName">Dezember</span>
-                <span class="year-text" id="yearText">2024</span>
               </div>
               
               <button class="nav-btn" id="nextMonth" title="Nächster Monat" onclick="changeMonth(1)">
@@ -2655,7 +2669,23 @@
                 </svg>
               </button>
             </div>
-            
+
+            <div class="year-nav">
+              <button class="year-btn" id="prevYear" title="Vorheriges Jahr" onclick="changeYear(-1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+              <div class="year-display" id="yearDisplay">
+                <span class="year-text" id="yearText">2024</span>
+              </div>
+              <button class="year-btn" id="nextYear" title="Nächstes Jahr" onclick="changeYear(1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18l6-6 6-6"/>
+                </svg>
+              </button>
+            </div>
+
             <!-- Heute Button absolut positioniert -->
             <button class="today-btn-nav" onclick="goToToday()" title="Zu heute springen" style="display: none;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

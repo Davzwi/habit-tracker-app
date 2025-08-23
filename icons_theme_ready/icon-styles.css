@@ -1,0 +1,49 @@
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.icon img {
+  width: 32px;
+  height: 32px;
+}
+
+/* Icon-specific background colors */
+.icon.alarm { --bg: #FFA62B; }
+.icon.meeting { --bg: #667EEA; }
+.icon.coffee { --bg: #8B5CF6; }
+.icon.food { --bg: #10B981; }
+.icon.laptop { --bg: #6366F1; }
+.icon.gym { --bg: #EF4444; }
+.icon.moon { --bg: #9D7BFF; }
+.icon.book { --bg: #F59E0B; }
+.icon.water { --bg: #6CA6FF; }
+.icon.run { --bg: #EC4899; }
+.icon.meditation { --bg: #A78BFA; }
+.icon.heart { --bg: #EF4444; }
+.icon.star { --bg: #FCD34D; }
+.icon.check { --bg: #10B981; }
+.icon.plus { --bg: #6366F1; }
+.icon.home { --bg: #3B82F6; }
+.icon.shower { --bg: #06B6D4; }
+.icon.bed { --bg: #8B5CF6; }
+.icon.phone { --bg: #71717A; }
+.icon.email { --bg: #DC2626; }
+.icon.code { --bg: #059669; }
+.icon.brain { --bg: #7C3AED; }
+.icon.target { --bg: #DC2626; }
+.icon.chart { --bg: #10B981; }
+.icon.calendar { --bg: #6366F1; }
+.icon.search { --bg: #71717A; }
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .icon { color: #fff; }
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  .icon { color: #1f2937; }
+}

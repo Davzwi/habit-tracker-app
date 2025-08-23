@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habit Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .date-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .date-nav button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .date-nav button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .current-date {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    /* Tasks */
+    .tasks-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .task-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
+
+    .task-item.completed {
+      opacity: 0.5;
+    }
+
+    .task-item.completed .task-name {
+      text-decoration: line-through;
+    }
+
+    .task-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 15px;
+    }
+
+    .task-info {
+      flex: 1;
+    }
+
+    .task-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+
+    .task-time {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .task-check {
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+    }
+
+    .task-item.completed .task-check {
+      background: #4CAF50;
+      border-color: #4CAF50;
+    }
+
+    .task-item.completed .task-check::after {
+      content: '✓';
+      color: white;
+      font-size: 14px;
+    }
+
+    .task-delete {
+      background: rgba(255, 67, 54, 0.2);
+      border: none;
+      color: #ff4336;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .task-delete:hover {
+      background: rgba(255, 67, 54, 0.3);
+    }
+
+    /* Add Button */
+    .fab {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: #FFA62B;
+      border-radius: 50%;
+      border: none;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+
+    .fab:hover {
+      transform: scale(1.1);
+    }
+
+    .fab:active {
+      transform: scale(0.95);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+    }
+
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .form-select option {
+      background: #764ba2;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background: #FFA62B;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    /* Icon colors */
+    .icon-blue { background: rgba(108, 166, 255, 0.2); }
+    .icon-orange { background: rgba(255, 166, 43, 0.2); }
+    .icon-green { background: rgba(76, 175, 80, 0.2); }
+    .icon-purple { background: rgba(156, 39, 176, 0.2); }
+    .icon-red { background: rgba(244, 67, 54, 0.2); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      opacity: 0.6;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+    }
+
+    /* Quick add buttons */
+    .quick-add-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .quick-add-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .quick-add-btn {
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .quick-add-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .quick-add-icon {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="date-nav">
+        <button onclick="changeDate(-1)">←</button>
+        <div class="current-date" id="currentDate">Heute</div>
+        <button onclick="changeDate(1)">→</button>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-number" id="tasksCompleted">0</div>
+          <div class="stat-label">Erledigt</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="tasksTotal">0</div>
+          <div class="stat-label">Gesamt</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="streak">0</div>
+          <div class="stat-label">Streak 🔥</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Add Section -->
+    <div class="quick-add-section">
+      <div class="section-title">Schnell hinzufügen</div>
+      <div class="quick-add-grid">
+        <button class="quick-add-btn" onclick="quickAdd('Wasser trinken', '💧', '08:00')">
+          <span class="quick-add-icon">💧</span>
+          <span>Wasser</span>
+        </button>
+        <button class="quick-add-btn" onclick="quickAdd('Workout', '💪', '07:00')">
+          <span class="quick-add-icon">💪</span>
+          <span>Workout</span>
+        </button>
+        <button class="quick-add-btn" onclick="quickAdd('Meditation', '🧘', '06:30')">
+          <span class="quick-add-icon">🧘</span>
+          <span>Meditation</span>
+        </button>
+        <button class="quick-add-btn" onclick="quickAdd('Lesen', '📚', '21:00')">
+          <span class="quick-add-icon">📚</span>
+          <span>Lesen</span>
+        </button>
+        <button class="quick-add-btn" onclick="quickAdd('Spaziergang', '🚶', '18:00')">
+          <span class="quick-add-icon">🚶</span>
+          <span>Spaziergang</span>
+        </button>
+        <button class="quick-add-btn" onclick="quickAdd('Tagebuch', '📝', '22:00')">
+          <span class="quick-add-icon">📝</span>
+          <span>Tagebuch</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Morning Tasks -->
+    <div class="tasks-container">
+      <div class="section-title">🌅 Morgen (6:00 - 12:00)</div>
+      <div id="morningTasks"></div>
+    </div>
+
+    <!-- Afternoon Tasks -->
+    <div class="tasks-container">
+      <div class="section-title">☀️ Nachmittag (12:00 - 18:00)</div>
+      <div id="afternoonTasks"></div>
+    </div>
+
+    <!-- Evening Tasks -->
+    <div class="tasks-container">
+      <div class="section-title">🌙 Abend (18:00 - 24:00)</div>
+      <div id="eveningTasks"></div>
+    </div>
+  </div>
+
+  <!-- Add Button -->
+  <button class="fab" onclick="openModal()">+</button>
+
+  <!-- Add Task Modal -->
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Neue Aufgabe</h2>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-input" id="taskName" placeholder="z.B. Morgen-Yoga">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Icon</label>
+        <select class="form-select" id="taskIcon">
+          <option value="💧">💧 Wasser</option>
+          <option value="☕">☕ Kaffee</option>
+          <option value="🏃">🏃 Sport</option>
+          <option value="💪">💪 Workout</option>
+          <option value="🧘">🧘 Meditation</option>
+          <option value="📚">📚 Lesen</option>
+          <option value="✍️">✍️ Schreiben</option>
+          <option value="🎯">🎯 Ziel</option>
+          <option value="🌟">🌟 Wichtig</option>
+          <option value="📱">📱 Anruf</option>
+          <option value="💼">💼 Arbeit</option>
+          <option value="🛏️">🛏️ Schlafen</option>
+          <option value="🍎">🍎 Essen</option>
+          <option value="🚶">🚶 Spaziergang</option>
+          <option value="📝">📝 Notiz</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Zeit</label>
+        <input type="time" class="form-input" id="taskTime" value="09:00">
+      </div>
+      
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
+        <button class="btn btn-primary" onclick="addTask()">Hinzufügen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentDate = new Date();
+    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      updateDisplay();
+    });
+
+    // Date Navigation
+    function changeDate(days) {
+      currentDate.setDate(currentDate.getDate() + days);
+      updateDisplay();
+    }
+
+    function formatDate(date) {
+      const today = new Date();
+      const isToday = date.toDateString() === today.toDateString();
+      
+      if (isToday) return 'Heute';
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (date.toDateString() === yesterday.toDateString()) return 'Gestern';
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      if (date.toDateString() === tomorrow.toDateString()) return 'Morgen';
+      
+      const options = { weekday: 'long', day: 'numeric', month: 'long' };
+      return date.toLocaleDateString('de-DE', options);
+    }
+
+    function getDateString(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    // Display
+    function updateDisplay() {
+      document.getElementById('currentDate').textContent = formatDate(currentDate);
+      loadTasks();
+      updateStats();
+    }
+
+    function loadTasks() {
+      const dateStr = getDateString(currentDate);
+      const dayTasks = tasks.filter(t => t.date === dateStr);
+      
+      // Sort by time
+      dayTasks.sort((a, b) => a.time.localeCompare(b.time));
+      
+      // Group by time period
+      const morning = dayTasks.filter(t => {
+        const hour = parseInt(t.time.split(':')[0]);
+        return hour >= 6 && hour < 12;
+      });
+      
+      const afternoon = dayTasks.filter(t => {
+        const hour = parseInt(t.time.split(':')[0]);
+        return hour >= 12 && hour < 18;
+      });
+      
+      const evening = dayTasks.filter(t => {
+        const hour = parseInt(t.time.split(':')[0]);
+        return hour >= 18 || hour < 6;
+      });
+      
+      renderTasks('morningTasks', morning);
+      renderTasks('afternoonTasks', afternoon);
+      renderTasks('eveningTasks', evening);
+    }
+
+    function renderTasks(containerId, taskList) {
+      const container = document.getElementById(containerId);
+      
+      if (taskList.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-text">Keine Aufgaben</div>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = taskList.map(task => `
+        <div class="task-item ${task.completed ? 'completed' : ''}" onclick="toggleTask('${task.id}')">
+          <div class="task-icon icon-${getIconColor(task.icon)}">${task.icon}</div>
+          <div class="task-info">
+            <div class="task-name">${task.name}</div>
+            <div class="task-time">${task.time}</div>
+          </div>
+          <div class="task-check"></div>
+          <button class="task-delete" onclick="event.stopPropagation(); deleteTask('${task.id}')">×</button>
+        </div>
+      `).join('');
+    }
+
+    function getIconColor(icon) {
+      const colorMap = {
+        '💧': 'blue',
+        '☕': 'orange',
+        '💪': 'red',
+        '🧘': 'purple',
+        '📚': 'green',
+        '🏃': 'red',
+        '🍎': 'green'
+      };
+      return colorMap[icon] || 'blue';
+    }
+
+    // Task Management
+    function toggleTask(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        saveTasks();
+        updateDisplay();
+        
+        // Update streak if today
+        if (getDateString(currentDate) === getDateString(new Date())) {
+          updateStreak();
+        }
+      }
+    }
+
+    function deleteTask(id) {
+      if (confirm('Aufgabe löschen?')) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+        updateDisplay();
+      }
+    }
+
+    function addTask() {
+      const name = document.getElementById('taskName').value;
+      const icon = document.getElementById('taskIcon').value;
+      const time = document.getElementById('taskTime').value;
+      
+      if (!name) {
+        alert('Bitte Namen eingeben');
+        return;
+      }
+      
+      const task = {
+        id: Date.now().toString(),
+        name: name,
+        icon: icon,
+        time: time,
+        date: getDateString(currentDate),
+        completed: false
+      };
+      
+      tasks.push(task);
+      saveTasks();
+      closeModal();
+      updateDisplay();
+    }
+
+    function quickAdd(name, icon, time) {
+      const task = {
+        id: Date.now().toString(),
+        name: name,
+        icon: icon,
+        time: time,
+        date: getDateString(currentDate),
+        completed: false
+      };
+      
+      tasks.push(task);
+      saveTasks();
+      updateDisplay();
+    }
+
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Stats
+    function updateStats() {
+      const dateStr = getDateString(currentDate);
+      const dayTasks = tasks.filter(t => t.date === dateStr);
+      const completed = dayTasks.filter(t => t.completed).length;
+      
+      document.getElementById('tasksCompleted').textContent = completed;
+      document.getElementById('tasksTotal').textContent = dayTasks.length;
+      
+      // Streak calculation
+      const streak = calculateStreak();
+      document.getElementById('streak').textContent = streak;
+    }
+
+    function calculateStreak() {
+      const today = new Date();
+      let streak = 0;
+      let checkDate = new Date(today);
+      
+      while (true) {
+        const dateStr = getDateString(checkDate);
+        const dayTasks = tasks.filter(t => t.date === dateStr);
+        const completed = dayTasks.filter(t => t.completed).length;
+        
+        if (dayTasks.length > 0 && completed === dayTasks.length) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else if (checkDate.toDateString() === today.toDateString()) {
+          // Today might not be complete yet
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      
+      return streak;
+    }
+
+    function updateStreak() {
+      const dateStr = getDateString(new Date());
+      const dayTasks = tasks.filter(t => t.date === dateStr);
+      const completed = dayTasks.filter(t => t.completed).length;
+      
+      if (dayTasks.length > 0 && completed === dayTasks.length) {
+        // All tasks completed for today
+        localStorage.setItem('lastStreakDate', dateStr);
+      }
+    }
+
+    // Modal
+    function openModal() {
+      document.getElementById('addModal').classList.add('active');
+      document.getElementById('taskName').value = '';
+      document.getElementById('taskTime').value = '09:00';
+    }
+
+    function closeModal() {
+      document.getElementById('addModal').classList.remove('active');
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('addModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Icons Sprite - Final Implementation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px;
+    }
+    
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 32px;
+    }
+    
+    /* Exakter Pill Style aus deiner Vorgabe */
+    .pill { 
+      position: relative; 
+      display: inline-grid; 
+      place-items: center; 
+      width: 48px; 
+      height: 48px;
+      margin: 8px;
+    }
+    
+    .bg { 
+      position: absolute; 
+      inset: 0; 
+      border-radius: 8px; 
+      background: var(--bg, #6CA6FF); 
+      opacity: .15; 
+    }
+    
+    .icon { 
+      width: 24px; 
+      height: 24px; 
+      color: #fff;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Farben je Icon */
+    .water { --bg: #6CA6FF; }
+    .moon { --bg: #9D7BFF; }
+    .alarm { --bg: #FFA62B; }
+    .meeting { --bg: #667EEA; }
+    .coffee { --bg: #8B5CF6; }
+    .food { --bg: #10B981; }
+    .laptop { --bg: #6366F1; }
+    .gym { --bg: #EF4444; }
+    .book { --bg: #F59E0B; }
+    .run { --bg: #EC4899; }
+    .meditation { --bg: #A78BFA; }
+    .heart { --bg: #EF4444; }
+    .star { --bg: #FCD34D; }
+    .check { --bg: #10B981; }
+    .plus { --bg: #6366F1; }
+    .home { --bg: #3B82F6; }
+    .shower { --bg: #06B6D4; }
+    .bed { --bg: #8B5CF6; }
+    .phone { --bg: #71717A; }
+    .email { --bg: #DC2626; }
+    .code { --bg: #059669; }
+    .brain { --bg: #7C3AED; }
+    .target { --bg: #DC2626; }
+    .chart { --bg: #10B981; }
+    .calendar { --bg: #6366F1; }
+    .search { --bg: #71717A; }
+    
+    .icons-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .icon-name {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      text-align: center;
+    }
+    
+    .code-section {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 40px;
+    }
+    
+    .code-section h2 {
+      color: white;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    
+    pre {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      color: #93C5FD;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 14px;
+    }
+    
+    .hover-effect .pill {
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    
+    .hover-effect .pill:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 SVG Sprite Icons - Production Ready</h1>
+    
+    <div class="icons-grid hover-effect">
+      <!-- Water -->
+      <div class="icon-item">
+        <div class="pill water">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#water"></use>
+          </svg>
+        </div>
+        <span class="icon-name">water</span>
+      </div>
+      
+      <!-- Moon -->
+      <div class="icon-item">
+        <div class="pill moon">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#moon"></use>
+          </svg>
+        </div>
+        <span class="icon-name">moon</span>
+      </div>
+      
+      <!-- Alarm -->
+      <div class="icon-item">
+        <div class="pill alarm">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#alarm"></use>
+          </svg>
+        </div>
+        <span class="icon-name">alarm</span>
+      </div>
+      
+      <!-- Meeting -->
+      <div class="icon-item">
+        <div class="pill meeting">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#meeting"></use>
+          </svg>
+        </div>
+        <span class="icon-name">meeting</span>
+      </div>
+      
+      <!-- Coffee -->
+      <div class="icon-item">
+        <div class="pill coffee">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#coffee"></use>
+          </svg>
+        </div>
+        <span class="icon-name">coffee</span>
+      </div>
+      
+      <!-- Food -->
+      <div class="icon-item">
+        <div class="pill food">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#food"></use>
+          </svg>
+        </div>
+        <span class="icon-name">food</span>
+      </div>
+      
+      <!-- Laptop -->
+      <div class="icon-item">
+        <div class="pill laptop">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#laptop"></use>
+          </svg>
+        </div>
+        <span class="icon-name">laptop</span>
+      </div>
+      
+      <!-- Gym -->
+      <div class="icon-item">
+        <div class="pill gym">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#gym"></use>
+          </svg>
+        </div>
+        <span class="icon-name">gym</span>
+      </div>
+      
+      <!-- Book -->
+      <div class="icon-item">
+        <div class="pill book">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#book"></use>
+          </svg>
+        </div>
+        <span class="icon-name">book</span>
+      </div>
+      
+      <!-- Run -->
+      <div class="icon-item">
+        <div class="pill run">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#run"></use>
+          </svg>
+        </div>
+        <span class="icon-name">run</span>
+      </div>
+      
+      <!-- Meditation -->
+      <div class="icon-item">
+        <div class="pill meditation">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#meditation"></use>
+          </svg>
+        </div>
+        <span class="icon-name">meditation</span>
+      </div>
+      
+      <!-- Heart -->
+      <div class="icon-item">
+        <div class="pill heart">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#heart"></use>
+          </svg>
+        </div>
+        <span class="icon-name">heart</span>
+      </div>
+      
+      <!-- Star -->
+      <div class="icon-item">
+        <div class="pill star">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#star"></use>
+          </svg>
+        </div>
+        <span class="icon-name">star</span>
+      </div>
+      
+      <!-- Check -->
+      <div class="icon-item">
+        <div class="pill check">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#check"></use>
+          </svg>
+        </div>
+        <span class="icon-name">check</span>
+      </div>
+      
+      <!-- Plus -->
+      <div class="icon-item">
+        <div class="pill plus">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#plus"></use>
+          </svg>
+        </div>
+        <span class="icon-name">plus</span>
+      </div>
+      
+      <!-- Home -->
+      <div class="icon-item">
+        <div class="pill home">
+          <span class="bg"></span>
+          <svg class="icon" viewBox="0 0 24 24">
+            <use href="/icons_sprite/icons-sprite.svg#home"></use>
+          </svg>
+        </div>
+        <span class="icon-name">home</span>
+      </div>
+    </div>
+    
+    <div class="code-section">
+      <h2>📋 Implementation Code</h2>
+      
+      <h3 style="color: white; margin: 20px 0 10px;">HTML Structure:</h3>
+      <pre>&lt;!-- Icon mit Sprite-Referenz --&gt;
+&lt;div class="pill water"&gt;
+  &lt;span class="bg"&gt;&lt;/span&gt;
+  &lt;svg class="icon" viewBox="0 0 24 24"&gt;
+    &lt;use href="/icons_sprite/icons-sprite.svg#water"&gt;&lt;/use&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;</pre>
+      
+      <h3 style="color: white; margin: 20px 0 10px;">CSS Styling:</h3>
+      <pre>.pill { 
+  position: relative; 
+  display: inline-grid; 
+  place-items: center; 
+  width: 48px; 
+  height: 48px; 
+}
+
+.bg { 
+  position: absolute; 
+  inset: 0; 
+  border-radius: 8px; 
+  background: var(--bg, #6CA6FF); 
+  opacity: .15; 
+}
+
+.icon { 
+  width: 24px; 
+  height: 24px; 
+  color: #fff;  /* steuert stroke via currentColor */
+}
+
+/* Farben je Icon */
+.water { --bg: #6CA6FF; }
+.moon  { --bg: #9D7BFF; }
+.alarm { --bg: #FFA62B; }</pre>
+      
+      <h3 style="color: white; margin: 20px 0 10px;">Dateipfad:</h3>
+      <pre>/icons_sprite/icons-sprite.svg</pre>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,4604 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Structured - Tagesplaner</title>
+  <style>
+    * { 
+      margin:0; 
+      padding:0; 
+      box-sizing:border-box; 
+      -webkit-tap-highlight-color:transparent; 
+      -webkit-user-select:none; 
+      user-select:none;
+      -webkit-touch-callout: none;
+    }
+    :root {
+      /* Hintergrund - Seriöses Dunkelgrau */
+      --bg-primary: #0A0B0D;       /* Sehr dunkles Grau */
+      --bg-secondary: #141518;      /* Panels, Modals */
+      --glass: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.06);
+
+      /* Text */
+      --text-primary: #E8E9ED;
+      --text-secondary: rgba(232, 233, 237, 0.65);
+      --text-tertiary: rgba(232, 233, 237, 0.35);
+      
+      /* Haupt-Akzent - Professionelles Blau */
+      --primary: #4B7BEC;
+      --primary-dark: #3867D6;
+      
+      /* Statusfarben - Gedämpft */
+      --success: #26DE81;          /* Professionelles Grün */
+      --danger: #FC5C65;           /* Gedämpftes Rot */
+      --accent: #778CA3;           /* Neutrales Grau-Blau */
+      
+      /* Karten-Schatten */
+      --shadow-1: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
+      
+      /* Icon-Background */
+      --icon-bg: rgba(75, 123, 236, 0.12);
+      --icon-accent: rgba(75, 123, 236, 0.18);
+      
+      /* Kategorie-Farben - Professionell (ohne Purple) */
+      --cat-blue: #4B7BEC;
+      --cat-green: #26DE81;
+      --cat-grey: #4A5568;      /* Ersetzt Purple */
+      --cat-orange: #FD9644;
+      --cat-teal: #00CEC9;      /* Ersetzt Pink */
+
+      /* Category accents (Tasks) - Professionell (ohne Purple) */
+      --acc-arbeit: #4B7BEC;
+      --acc-haushalt: #26DE81;
+      --acc-fitness: #20BF6B;
+      --acc-lernen: #4B7BEC;
+      --acc-gesundheit: #FC5C65;
+      --acc-persoenlich: #4A5568;   /* Grau statt Purple */
+      --acc-kreativ: #00CEC9;        /* Teal statt Purple */
+      --acc-social: #FD9644;
+      --acc-finanzen: #26DE81;
+      --acc-technik: #778CA3;
+
+      /* Category accents (Habits) - Professionell (ohne Purple) */
+      --acc-morgen: #FD9644;
+      --acc-abend: #4A5568;          /* Grau statt Purple */
+      --acc-produktiv: #4B7BEC;
+      --acc-healthfit: #20BF6B;
+      --acc-detox: #4B7BEC;
+      --acc-house-small: #778CA3;
+      --acc-schlaf: #2D3748;         /* Dunkelgrau statt Purple */
+    }
+
+    /* Animated gradient background */
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(10deg); }
+    }
+    
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes checkmark {
+      0% { transform: scale(0) rotate(-45deg); }
+      50% { transform: scale(1.2) rotate(-45deg); }
+      100% { transform: scale(1) rotate(-45deg); }
+    }
+
+    html,body{
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      position:fixed;
+      background: var(--bg-primary);
+      overscroll-behavior: none;
+    }
+
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+      color:var(--text-primary);
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* Floating glass orbs - disabled for minimal design */
+    .bg-orb { display: none; }
+
+    .app{
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      position: relative;
+      z-index: 1;
+      padding-top: env(safe-area-inset-top, 20px);
+    }
+
+    /* Glass morphism header */
+    .header{
+      padding-top:env(safe-area-inset-top,20px);
+      background: var(--bg-secondary);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--glass-border);
+      position: relative;
+      z-index: 10;
+      box-shadow: var(--shadow-1);
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1));
+      pointer-events: none;
+    }
+    .header-content{
+      padding:20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      position: relative;
+    }
+    .header h1{
+      font-size:32px;
+      font-weight:800;
+      background: linear-gradient(90deg, #E8E9ED, #A4B0BE);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: none;
+    }
+    .header-actions{display:flex;gap:12px;}
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      width: 100%;
+      max-width: 600px;
+    }
+    
+    .header-btn{
+      min-width:44px;
+      height:44px;
+      flex: 0 0 auto;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border:1px solid var(--glass-border);
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .header-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .header-btn:active::before {
+      opacity: 1;
+    }
+    .header-btn:active{
+      transform: scale(0.95);
+    }
+
+    /* Calendar glass container */
+    .calendar-container{
+      background: transparent;
+      border-bottom:1px solid var(--glass-border);
+      padding:8px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-primary);
+    }
+
+    /* Date selector with minimal cards */
+    .date-selector{
+      display:flex;
+      gap:10px;
+      padding:12px 16px;
+      margin: 0;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+      background: transparent;
+      border-radius: 0;
+      border: none;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    .date-selector::-webkit-scrollbar{display:none;}
+
+    .date-item{
+      flex:0 0 auto;
+      min-width:65px;
+      height:85px;
+      padding:10px;
+      text-align:center;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(5px);
+      border-radius:30px;
+      border:1px solid rgba(255, 255, 255, 0.06);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      position: relative;
+      overflow: hidden;
+      transition: all .2s ease;
+      cursor: pointer;
+    }
+    .date-item:hover{
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .date-item::before {
+      display: none;
+    }
+    .date-item:active{
+      transform:scale(0.96);
+    }
+    .date-item.active{
+      background: linear-gradient(135deg, var(--primary), #667eea);
+      border-color: transparent;
+      box-shadow: 0 6px 20px rgba(75, 123, 236, 0.35);
+      color: white;
+      transform: scale(1.02);
+    }
+    .date-item.today:not(.active){
+      border: 2px solid var(--primary);
+      background: rgba(75, 123, 236, 0.08);
+      position: relative;
+    }
+    .date-item.today:not(.active)::after{
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+    .date-day{
+      font-size:10px;
+      font-weight:600;
+      opacity:.5;
+      text-transform:uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .date-num{
+      font-size:20px;
+      font-weight:700;
+      line-height: 1;
+    }
+    .date-item.active .date-day,
+    .date-item.active .date-num{
+      color: white;
+      opacity: 1;
+    }
+
+    /* Content */
+    .content{
+      flex:1;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* View Containers */
+    .view-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Timeline specific styles */
+    #timelineView {
+      overflow: hidden;
+    }
+    
+    .timeline-scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 100px;
+    }
+    
+    .timeline-scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* Home View Styles */
+    .home-content {
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .welcome-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+    }
+    
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: var(--glass);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--glass-border);
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Stats View Styles */
+    .stats-content {
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .stats-content h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    
+    /* Settings View Styles */
+    .settings-content {
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .settings-content h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    
+    /* Atomic Habits Style Time blocks */
+    .time-block{
+      padding:0 16px;
+      margin-bottom:32px;
+    }
+    .time-header{
+      margin-bottom:20px;
+      padding:0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      position: relative;
+    }
+    .time-header-title{
+      display:flex;
+      align-items:baseline;
+      gap:12px;
+    }
+    .time-label{
+      font-size:11px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1.5px;
+      color:var(--text-tertiary);
+    }
+    .time-progress{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+    .progress-stats{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:2px;
+    }
+    .progress-percentage{
+      font-size:16px;
+      font-weight:700;
+      color:var(--text-primary);
+    }
+    .progress-info{
+      font-size:11px;
+      color:var(--text-tertiary);
+      font-weight:600;
+      letter-spacing:0.5px;
+    }
+    .progress-ring{
+      width:32px;
+      height:32px;
+      position:relative;
+    }
+    .progress-ring svg{
+      width:32px;
+      height:32px;
+      transform:rotate(-90deg);
+    }
+    .progress-ring-bg{
+      fill:none;
+      stroke:var(--glass-border);
+      stroke-width:2;
+    }
+    .progress-ring-fill{
+      fill:none;
+      stroke:var(--success);
+      stroke-width:2;
+      stroke-linecap:round;
+      transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* Atomic Habits Style Tasks - GRÖSSER */
+    .task{
+      display:flex;
+      align-items:center;
+      background: transparent;
+      backdrop-filter: none;
+      border-radius:0;
+      padding:16px 0;
+      margin-bottom:0;
+      border:none;
+      /* Border removed */
+      min-height:72px;
+      position: relative;
+      overflow: visible;
+      box-shadow: none;
+      transition: background .15s ease, opacity .15s ease;
+    }
+    .task::before {
+      display:none;
+    }
+    .task:last-child{
+      border-bottom:none;
+    }
+    .task:active{
+      transform: none;
+      background: var(--glass);
+    }
+    .task.active {
+      border-color: transparent;
+    }
+    
+    /* Currently active task based on time */
+    .task.time-active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+      border-left: 3px solid var(--primary);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+      transform: translateX(2px);
+    }
+    
+    .task.time-active .task-time {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    
+    .task.time-active .task-dot {
+      background: var(--primary);
+      box-shadow: 0 0 12px var(--primary);
+      animation: pulse 2s infinite;
+    }
+    
+    .task.time-active .task-title {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+    
+    .task.time-active .timeline-item-icon {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+    }
+    
+    /* Progress bar for active tasks */
+    .task-progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+    }
+    
+    .task-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #667eea);
+      transition: width 0.3s ease;
+      border-radius: 0 0 12px 12px;
+    }
+    
+    .task-progress-text {
+      position: absolute;
+      right: 16px;
+      bottom: 8px;
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 600;
+      background: rgba(17, 18, 21, 0.8);
+      padding: 2px 8px;
+      border-radius: 10px;
+      backdrop-filter: blur(4px);
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+      }
+    }
+    
+    .task.completed{
+      opacity:.5;
+    }
+    .task.completed .task-title{
+      text-decoration: line-through;
+      text-decoration-color: var(--text-tertiary);
+      color: var(--text-tertiary);
+    }
+    .task.completed .task-subtitle{
+      text-decoration: line-through;
+      text-decoration-color: var(--text-tertiary);
+      opacity: 0.5;
+    }
+    .task.completed .task-time{
+      color: var(--text-tertiary);
+    }
+
+    /* Minimal time display - GRÖSSER */
+    .task-time{
+      font-size:14px;
+      color:var(--text-tertiary);
+      min-width:48px;
+      font-weight:600;
+      font-variant-numeric: tabular-nums;
+    }
+    .task-divider{
+      display:none;
+    }
+
+    /* Atomic dot indicator */
+    .task-dot{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:var(--text-tertiary);
+      margin-right:16px;
+      flex-shrink:0;
+      transition: all .2s ease;
+      opacity: 0.8;
+    }
+    .task.habit-task .task-dot{
+      background:var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+    .task.completed .task-dot{
+      background:var(--success);
+      opacity: 0.6;
+    }
+
+    /* Clean content layout - GRÖSSER */
+    .task-content{
+      flex:1;
+      display:flex;
+      align-items: center;
+      gap:12px;
+    }
+    
+    .task-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+    .task-title{
+      font-size:17px;
+      font-weight:600;
+      line-height:1.4;
+      color:var(--text-primary);
+    }
+    .task-subtitle{
+      font-size:13px;
+      color:var(--text-tertiary);
+      font-weight:500;
+      line-height:1.3;
+    }
+
+    /* Habit streak indicator */
+    .task-streak{
+      display:none;
+      align-items:center;
+      gap:4px;
+      padding:4px 10px;
+      background:var(--glass);
+      border-radius:14px;
+      margin-right:12px;
+    }
+    .task.habit-task .task-streak{
+      display:flex;
+    }
+    .streak-icon{
+      font-size:14px;
+    }
+    .streak-count{
+      font-size:13px;
+      font-weight:700;
+      color:var(--text-secondary);
+    }
+
+    /* Minimal checkbox - GRÖSSER */
+    .task-check{
+      width:28px;
+      height:28px;
+      border:2px solid rgba(255,255,255,0.2);
+      border-radius:8px;
+      margin-left:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .task-check::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: -1;
+    }
+    
+    .task-check:hover {
+      border-color: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .task-check:hover::before {
+      opacity: 0.3;
+    }
+    
+    .task-check:active{
+      transform: scale(0.92);
+    }
+    
+    .task-check.checked{
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-color: transparent;
+      animation: checkPulse 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+    
+    .task-check.checked::after{
+      content:'';
+      position: absolute;
+      width: 6px;
+      height: 12px;
+      border: solid white;
+      border-width: 0 2.5px 2.5px 0;
+      transform: rotate(45deg) scale(0);
+      animation: checkMark 0.3s 0.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    @keyframes checkPulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    @keyframes checkMark {
+      0% {
+        transform: rotate(45deg) scale(0);
+      }
+      100% {
+        transform: rotate(45deg) scale(1);
+      }
+    }
+    
+    /* Task completion effect */
+    .task.completed {
+      position: relative;
+    }
+    
+    .task.completed::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.2);
+      animation: strikethrough 0.3s 0.2s ease-out forwards;
+    }
+    
+    @keyframes strikethrough {
+      to {
+        width: calc(100% - 100px);
+      }
+    }
+    
+    @keyframes taskComplete {
+      0% {
+        transform: translateX(0);
+      }
+      25% {
+        transform: translateX(-2px);
+      }
+      50% {
+        transform: translateX(2px);
+      }
+      75% {
+        transform: translateX(-1px);
+      }
+      100% {
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes uncheckRotate {
+      0% {
+        transform: rotate(0);
+      }
+      100% {
+        transform: rotate(-360deg);
+      }
+    }
+    
+    .task.completed .task-title {
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    
+    .task.completed .task-subtitle {
+      opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+    
+    /* Completion particle effect */
+    .completion-particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particle 0.8s ease-out forwards;
+      z-index: 1000;
+    }
+    
+    /* Success notification */
+    .success-toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      animation: toastSlide 2s ease forwards;
+      z-index: 10000;
+    }
+    
+    @keyframes toastSlide {
+      0% {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+      }
+      20% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      80% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+      }
+    }
+    
+    @keyframes particle {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* Hidden icon for data storage */
+    .task-icon{
+      display:none;
+    }
+
+    .task-actions{
+      display:flex;
+      gap:8px;
+      margin-left:8px;
+    }
+    .edit-task-btn, .delete-task-btn{
+      width:32px;
+      height:32px;
+      background:var(--glass);
+      backdrop-filter: blur(10px);
+      border:1px solid var(--glass-border);
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+    }
+    .edit-task-btn:active, .delete-task-btn:active{
+      transform: scale(0.9);
+      opacity: 0.7;
+    }
+
+    /* FAB with glass effect */
+    .fab{
+      position:fixed;
+      bottom:calc(100px + env(safe-area-inset-bottom,0px));
+      right:20px;
+      width:60px;
+      height:60px;
+      background: var(--primary);
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:32px;
+      box-shadow: var(--shadow-2);
+      z-index:30;
+      color:white;
+      transition: background .2s ease;
+      cursor: pointer;
+    }
+    .fab:active{
+      background: var(--primary-dark);
+      transform:scale(0.9);
+    }
+
+    /* Bottom nav with glass */
+    .bottom-nav{
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      background:rgba(10, 10, 15, 0.8);
+      backdrop-filter:blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-top:1px solid var(--glass-border);
+      padding-bottom:env(safe-area-inset-bottom,0px);
+      z-index:20;
+    }
+    .nav-content{
+      display:flex;
+      justify-content:space-around;
+      padding:10px 0;
+    }
+    .nav-item{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:8px;
+      gap:4px;
+      color:var(--text-tertiary);
+      position: relative;
+      cursor: pointer;
+    }
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .nav-item.active::before {
+      opacity: 0.1;
+    }
+    .nav-item:active{
+      transform:scale(0.95);
+    }
+    .nav-item.active{color:var(--primary);}
+    .nav-icon{font-size:24px;}
+    .nav-label{font-size:11px;font-weight:600;}
+
+    /* Empty state */
+    .empty-state{
+      text-align:center;
+      padding:80px 40px;
+      color:var(--text-tertiary);
+    }
+    .empty-icon{font-size:60px;margin-bottom:16px;opacity:.3;}
+    .empty-text{font-size:18px;font-weight:600;color:var(--text-secondary);}
+
+    /* Modal with glass morphism */
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.6);
+      backdrop-filter:blur(10px);
+      display:none;
+      align-items:flex-end;
+      z-index:1000;
+    }
+    .modal.active{display:flex;}
+    .modal-content{
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border:1px solid var(--glass-border);
+      border-radius:24px 24px 0 0;
+      padding:20px;
+      padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+      width:100%;
+      max-height:85vh;
+      overflow-y:auto;
+      position: relative;
+    }
+    .modal-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(236, 72, 153, 0.05));
+      border-radius: 24px 24px 0 0;
+      pointer-events: none;
+    }
+    .modal-header{
+      font-size:22px;
+      font-weight:700;
+      margin:16px 0 24px;
+      text-align:center;
+      position: relative;
+    }
+    .modal-close{
+      position:absolute;
+      top:16px;
+      right:16px;
+      width:36px;
+      height:36px;
+      background:var(--glass);
+      backdrop-filter: blur(10px);
+      border:1px solid var(--glass-border);
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      position: relative;
+      z-index: 10;
+      cursor: pointer;
+    }
+    .modal-close:active{
+      transform: scale(0.9);
+    }
+
+    /* Month/Year bar - MOBILE FRIENDLY */
+    .month-bar{
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      gap: 16px;
+      padding: 20px 16px;
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent);
+      backdrop-filter: blur(10px);
+      overflow: visible;
+      border-radius: 0;
+      margin: 0;
+      min-height: 72px;
+    }
+    
+    /* Line removed for cleaner design */
+
+    /* Date Navigation Container - MOBILE OPTIMIZED */
+    .date-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    /* Navigation Buttons - TOUCH FRIENDLY */
+    .nav-btn {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      font-size: 24px;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(0.95);
+    }
+
+    /* Date Text Container - COMPACT MOBILE */
+    .date-text-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 180px;
+    }
+
+    .date-text-container:active {
+      background: rgba(255, 255, 255, 0.05);
+      transform: scale(0.98);
+    }
+
+    .month-text {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .year-text {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+
+    /* Today Button - MOBILE FRIENDLY */
+    .today-btn-nav {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 20px;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(10px);
+    }
+    
+    .today-btn-nav span {
+      display: inline-block;
+    }
+    
+    .today-btn-nav svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--primary);
+    }
+    
+    .today-btn-nav:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateY(-50%) scale(1.05);
+    }
+    
+    .today-btn-nav:active {
+      transform: translateY(-50%) scale(0.98);
+    }
+    
+    .today-btn-nav:active {
+      transform: scale(0.95);
+      opacity: 0.9;
+    }
+    
+    /* Year Navigation (Hidden) */
+    .year-display {
+      display: none;
+    }
+
+    .year-nav {
+      display: none;
+    }
+
+    .year-btn {
+      display: none;
+      background: rgba(75, 123, 236, 0.15);
+      border-color: rgba(75, 123, 236, 0.3);
+      transform: scale(1.2);
+      opacity: 1;
+      box-shadow: 0 0 12px rgba(75, 123, 236, 0.3);
+    }
+
+    .year-btn:active {
+      transform: scale(0.92);
+      transition: transform 0.05s ease;
+    }
+
+    .year-btn svg {
+      width: 12px;
+      height: 12px;
+      stroke-width: 2.5;
+    }
+
+    .month-display {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      position: relative;
+      text-transform: capitalize;
+      margin-top: 2px;
+      flex: 1;
+      max-width: 200px;
+    }
+    
+
+    /* INTEGRATED Navigation Buttons */
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      flex-shrink: 0;
+    }
+    
+    
+    /* Stelle sicher, dass nextMonth Button nicht mit Heute-Button überlappt */
+    @media (max-width: 420px) {
+      .date-display {
+        padding: 16px 24px;
+        margin: 0 8px;
+      }
+      .month-bar {
+        padding: 28px 12px 20px;
+        gap: 8px;
+      }
+    }
+
+    .nav-btn::before {
+      display: none;
+    }
+
+    .nav-btn:hover {
+      color: var(--text-primary);
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-btn:active {
+      transform: scale(0.95);
+      transition: transform 0.05s ease;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 2.5;
+    }
+
+    /* Swipe-Indikator Dots - 12 Monate */
+    .month-dots {
+      display: flex;
+      gap: 4px;
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 8px;
+      background: rgba(10, 11, 13, 0.8);
+      border-radius: 24px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(75, 123, 236, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .month-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .month-dot:hover {
+      background: rgba(75, 123, 236, 0.6);
+      transform: scale(1.8);
+      box-shadow: 0 0 8px rgba(75, 123, 236, 0.4);
+    }
+
+    .month-dot.active {
+      width: 20px;
+      height: 5px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    /* Heute-Button in Navigation */
+    .today-btn-nav {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      background: var(--primary);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(75, 123, 236, 0.3);
+      flex: 0 0 auto;
+      margin-left: 8px;
+    }
+    
+    .today-btn-nav:hover {
+      transform: scale(1.1);
+      box-shadow: 
+        0 12px 32px rgba(75, 123, 236, 0.4),
+        0 0 40px rgba(75, 123, 236, 0.3);
+    }
+    
+    .today-btn-nav:active {
+      transform: scale(0.95);
+    }
+    
+    .today-btn-nav svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .today-btn-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 24px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+
+    .today-btn-content:hover {
+      color: white;
+      transform: scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(75, 123, 236, 0.3);
+    }
+
+    .today-btn-content:hover::before {
+      opacity: 1;
+    }
+
+    .today-btn-content:active {
+      transform: scale(0.98);
+    }
+
+    .today-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.5; }
+    }
+
+    /* Swipe Animation */
+    @keyframes swipeLeft {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes swipeRight {
+      from { transform: translateX(-30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .month-display.swipe-left {
+      animation: swipeLeft 0.3s ease;
+    }
+
+    .month-display.swipe-right {
+      animation: swipeRight 0.3s ease;
+    }
+
+    /* Year change animation */
+    @keyframes yearChange {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .year-display.changing {
+      animation: yearChange 0.3s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 420px) {
+      .month-bar {
+        padding: 16px 16px 16px 16px;
+      }
+      
+      .month-display {
+        font-size: 22px;
+      }
+      
+      #yearText {
+        font-size: 18px;
+      }
+      
+      .year-display {
+        font-size: 16px;
+      }
+      
+      .nav-btn {
+        width: 32px;
+        height: 32px;
+      }
+      
+      .nav-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      
+      .today-btn-content {
+        padding: 8px 18px;
+        font-size: 12px;
+        margin: 12px auto;
+      }
+    }
+
+    /* Month Picker Modal */
+    .month-picker-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .month-picker-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .month-picker-content {
+      background: var(--bg-secondary);
+      border-radius: 32px;
+      padding: 36px;
+      max-width: 520px;
+      width: 92%;
+      border: 1.5px solid rgba(75, 123, 236, 0.2);
+      box-shadow: 
+        0 32px 80px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(75, 123, 236, 0.1);
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .month-picker-title {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text-primary), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    
+    .month-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    
+    .month-picker-item {
+      padding: 24px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text-secondary);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .month-picker-item:hover {
+      background: rgba(75, 123, 236, 0.1);
+      border-color: rgba(75, 123, 236, 0.3);
+      color: var(--primary);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(75, 123, 236, 0.2);
+    }
+    
+    .month-picker-item.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(75, 123, 236, 0.3);
+    }
+    
+    /* Tab Navigation Bar */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: var(--bg-secondary);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 16px;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 100;
+      backdrop-filter: blur(20px);
+    }
+    
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .tab-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--text-tertiary);
+      transition: all 0.3s ease;
+    }
+    
+    .tab-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+    }
+    
+    .tab-item.active .tab-icon {
+      color: var(--primary);
+    }
+    
+    .tab-item.active .tab-label {
+      color: var(--primary);
+    }
+    
+    .tab-item:hover .tab-icon,
+    .tab-item:hover .tab-label {
+      color: var(--text-secondary);
+    }
+    
+    .tab-item.active:hover .tab-icon,
+    .tab-item.active:hover .tab-label {
+      color: var(--primary);
+    }
+    
+    /* Central Add Button */
+    .tab-add-button {
+      position: relative;
+      margin: 0 -10px;
+      margin-bottom: 20px;
+    }
+    
+    /* Modal for Add Items */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .modal-content {
+      background: var(--surface);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+    
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 16px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s;
+    }
+    
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+    
+    .modal-search {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    
+    .modal-search input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .modal-search input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .modal-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    /* Category Accordion Styles - MODERN DESIGN */
+    .category-section {
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      position: relative;
+      transition: all 0.3s;
+    }
+    
+    .category-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+    
+    .category-section.expanded {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .category-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .category-section.expanded .category-header::after {
+      opacity: 1;
+    }
+    
+    .category-header:active {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .category-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.3s;
+    }
+    
+    .category-section.expanded .category-icon {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+      transform: scale(1.05);
+    }
+    
+    .category-info {
+      flex: 1;
+    }
+    
+    .category-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    
+    .category-count {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .category-arrow {
+      width: 24px;
+      height: 24px;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+      opacity: 0.6;
+    }
+    
+    .category-section.expanded .category-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+      opacity: 1;
+    }
+    
+    .category-items {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .category-section.expanded .category-items {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    
+    .category-items .modal-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      margin: 0;
+      border-radius: 0;
+    }
+    
+    .category-items .modal-item:last-child {
+      border-bottom: none;
+    }
+    
+    .category-items .modal-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .modal-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      margin-bottom: 4px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .modal-item:hover {
+      background: var(--glass);
+    }
+    
+    .modal-item:active {
+      transform: scale(0.98);
+    }
+    
+    /* Clean Icon Design - Tab View Style */
+    .modal-item-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .modal-item-icon svg {
+      width: 22px !important;
+      height: 22px !important;
+      stroke: white !important;
+      stroke-width: 2 !important;
+      fill: none !important;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 1 !important;
+      display: block !important;
+      color: white !important;
+    }
+    
+    .modal-item-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 30%, rgba(255, 255, 255, 0.05));
+    }
+    
+    /* Timeline Item Icon Styles */
+    .timeline-item-icon {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      position: relative;
+      overflow: visible !important;
+      z-index: 5 !important;
+    }
+    
+    .timeline-item-icon svg {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      stroke: white !important;
+      stroke-width: 2 !important;
+      fill: none !important;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: all 0.2s;
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: block !important;
+      color: white !important;
+      position: relative !important;
+      z-index: 10 !important;
+    }
+    
+    .timeline-item-icon.filled svg {
+      fill: rgba(255, 255, 255, 0.2);
+    }
+    
+    .timeline-item-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 50%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .timeline-item:hover .timeline-item-icon::before {
+      opacity: 1;
+    }
+    
+    .timeline-item:hover .timeline-item-icon {
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: scale(1.05);
+    }
+    
+    .timeline-item-text {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      cursor: pointer;
+    }
+    
+    .modal-item-content {
+      flex: 1;
+    }
+    
+    .modal-item-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .modal-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .modal-item-category {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: rgba(75, 123, 236, 0.1);
+      color: var(--primary);
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    
+    .modal-item-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+    
+    .modal-item-time {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    
+    /* Toast Notifications */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--surface);
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+    }
+    
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    /* Add Menu Overlay */
+    .add-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    .add-menu-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    /* Add Menu */
+    .add-menu {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1000;
+      min-width: 240px;
+    }
+    
+    .add-menu.active {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    
+    .add-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .add-menu-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .add-menu-item:active {
+      transform: scale(0.98);
+    }
+    
+    .add-menu-item:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .add-menu-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    
+    .add-menu-icon.task {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .add-menu-icon.habit {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+    
+    .add-menu-icon.challenge {
+      background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+    
+    .add-menu-icon.note {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+    
+    .add-menu-text {
+      flex: 1;
+    }
+    
+    .add-menu-title {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+    
+    .add-menu-subtitle {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    
+    .add-button-inner {
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 
+        0 8px 24px rgba(75, 123, 236, 0.4),
+        0 0 40px rgba(75, 123, 236, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 3px solid var(--bg-secondary);
+    }
+    
+    .add-button-inner:hover {
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 
+        0 12px 32px rgba(75, 123, 236, 0.5),
+        0 0 60px rgba(75, 123, 236, 0.3);
+    }
+    
+    .add-button-inner:active {
+      transform: scale(0.95);
+    }
+    
+    .add-button-inner svg {
+      width: 28px;
+      height: 28px;
+      color: white;
+    }
+    
+    
+    /* Desktop */
+    @media (min-width: 768px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .app {
+        max-width: 390px;
+        max-height: 844px;
+        height: 100vh;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 0 60px rgba(99, 102, 241, 0.3);
+        border: 8px solid rgba(255,255,255,0.1);
+        position: relative;
+      }
+      .tab-bar {
+        border-radius: 0 0 32px 32px;
+        max-width: 390px;
+      }
+    }
+    
+    /* Custom Creation Modal - MOBILE OPTIMIZED */
+    .custom-modal {
+      width: 100%;
+      max-width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    @media (min-width: 768px) {
+      .custom-modal {
+        max-width: 500px;
+        width: 90%;
+        height: auto;
+        max-height: 90vh;
+        border-radius: 24px 24px 0 0;
+        margin: auto;
+      }
+    }
+    
+    .custom-form {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .custom-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    
+    .custom-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.1);
+    }
+    
+    .custom-input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Time Selection */
+    .time-selection {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .time-input {
+      flex: 1;
+    }
+    
+    .duration-input {
+      flex: 1;
+      max-width: 150px;
+    }
+    
+    /* Date Selection - MOBILE FRIENDLY */
+    .date-selection {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+    }
+    
+    .date-btn {
+      padding: 10px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .date-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+    
+    .date-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    #customDate {
+      margin-top: 10px;
+    }
+    
+    /* Repeat Options - MOBILE GRID */
+    .repeat-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    
+    @media (max-width: 350px) {
+      .repeat-options {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .repeat-btn {
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .repeat-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+    
+    .repeat-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    /* Custom Repeat Days */
+    .custom-repeat-days {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+    
+    .day-checkbox {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .day-checkbox:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .day-checkbox.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    /* Icon Picker - MOBILE OPTIMIZED */
+    .icon-picker {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      padding: 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    
+    @media (min-width: 400px) {
+      .icon-picker {
+        grid-template-columns: repeat(8, 1fr);
+      }
+    }
+    
+    .icon-option {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.2s;
+    }
+    
+    .icon-option:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: scale(1.1);
+    }
+    
+    .icon-option.active {
+      border-color: var(--primary);
+      background: rgba(75, 123, 236, 0.1);
+    }
+    
+    /* Color Picker - MOBILE OPTIMIZED */
+    .color-picker {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+    }
+    
+    @media (min-width: 400px) {
+      .color-picker {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+    
+    .color-option {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+    
+    .color-option.active {
+      border-color: white;
+    }
+    
+    .color-option.active::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Priority Selection */
+    .priority-btn {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .priority-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .priority-btn.active.low {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+    }
+    
+    .priority-btn.active.medium {
+      background: #f59e0b;
+      color: white;
+      border-color: #f59e0b;
+    }
+    
+    .priority-btn.active.high {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+    }
+    
+    /* Create Button */
+    .create-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary), #667eea);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .create-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .create-btn:active::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .create-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(75, 123, 236, 0.3);
+    }
+    
+    .modal-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 10;
+    }
+    
+    .modal-close-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+
+  <!-- Month Picker Modal -->
+  <div class="month-picker-modal" id="monthPickerModal" onclick="closeMonthPicker(event)">
+    <div class="month-picker-content" onclick="event.stopPropagation()">
+      <div class="month-picker-title">Monat auswählen</div>
+      <div class="month-picker-grid" id="monthPickerGrid">
+        <!-- Wird dynamisch gefüllt -->
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- Content Container for different views -->
+    <div class="content" id="content">
+      
+      <!-- Home View -->
+      <div class="view-container" id="homeView" style="display: none;">
+        <div class="home-content">
+          <h2 class="welcome-title">Willkommen zurück! 👋</h2>
+          <div class="quick-stats">
+            <div class="stat-card">
+              <div class="stat-value">5</div>
+              <div class="stat-label">Aufgaben heute</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">60%</div>
+              <div class="stat-label">Abgeschlossen</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">12</div>
+              <div class="stat-label">Streak Tage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Timeline View (Current Tasks View) -->
+      <div class="view-container" id="timelineView">
+        <!-- Timeline Navigation and Calendar -->
+        <div class="calendar-container">
+          <div class="month-bar">
+            <div class="date-display">
+              <button class="nav-btn" id="prevMonth" title="Vorheriger Monat" onclick="changeMonth(-1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+              
+              <div class="date-text-container" onclick="showMonthPicker()">
+                <span class="month-text" id="monthName">Dezember</span>
+                <span class="year-text" id="yearText">2024</span>
+              </div>
+              
+              <button class="nav-btn" id="nextMonth" title="Nächster Monat" onclick="changeMonth(1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18l6-6 6-6"/>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Heute Button absolut positioniert -->
+            <button class="today-btn-nav" onclick="goToToday()" title="Zu heute springen" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              </svg>
+              <span>Heute</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="date-selector" id="dateSelector"></div>
+        
+        <!-- Timeline Content -->
+        <div class="timeline-scroll-container">
+          <div class="time-block">
+        <div class="time-header">
+          <div class="time-header-title">
+            <div class="time-label">Morgen</div>
+          </div>
+          <div class="time-progress">
+            <div class="progress-stats">
+              <div class="progress-percentage">100%</div>
+              <div class="progress-info">1/1</div>
+            </div>
+            <div class="progress-ring">
+              <svg>
+                <circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle>
+                <circle class="progress-ring-fill" cx="16" cy="16" r="14"
+                  stroke-dasharray="88"
+                  stroke-dashoffset="0">
+                </circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="task">
+          <div class="task-time">06:00</div>
+          <div class="task-dot" style="background: var(--cat-orange);"></div>
+          <div class="task-content">
+            <div class="timeline-item-icon" data-icon="alarm"></div>
+            <div class="task-info">
+              <div class="task-title">Aufwachen</div>
+              <div class="task-subtitle">Start in den Tag</div>
+            </div>
+          </div>
+          <div class="task-check"></div>
+        </div>
+        
+        
+        <!-- Platz für vom Benutzer hinzugefügte Morgen-Aufgaben -->
+      </div>
+
+      <div class="time-block">
+        <div class="time-header">
+          <div class="time-header-title">
+            <div class="time-label">Nachmittag</div>
+          </div>
+          <div class="time-progress">
+            <div class="progress-stats">
+              <div class="progress-percentage">0%</div>
+              <div class="progress-info">0/0</div>
+            </div>
+            <div class="progress-ring">
+              <svg>
+                <circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle>
+                <circle class="progress-ring-fill" cx="16" cy="16" r="14"
+                  stroke-dasharray="88"
+                  stroke-dashoffset="88">
+                </circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Platz für vom Benutzer hinzugefügte Nachmittags-Aufgaben -->
+      </div>
+
+      <div class="time-block">
+        <div class="time-header">
+          <div class="time-header-title">
+            <div class="time-label">Abend</div>
+          </div>
+          <div class="time-progress">
+            <div class="progress-stats">
+              <div class="progress-percentage">0%</div>
+              <div class="progress-info">0/1</div>
+            </div>
+            <div class="progress-ring">
+              <svg>
+                <circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle>
+                <circle class="progress-ring-fill" cx="16" cy="16" r="14"
+                  stroke-dasharray="88"
+                  stroke-dashoffset="88">
+                </circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Platz für vom Benutzer hinzugefügte Abend-Aufgaben -->
+        
+        <div class="task">
+          <div class="task-time">23:00</div>
+          <div class="task-dot"></div>
+          <div class="task-content">
+            <div class="timeline-item-icon" data-icon="moon"></div>
+            <div class="task-info">
+              <div class="task-title">Schlafen</div>
+              <div class="task-subtitle">Gute Nacht</div>
+            </div>
+          </div>
+          <div class="task-check" style="pointer-events: none; opacity: 0.5;"></div>
+        </div>
+      </div>
+        </div>
+      </div>
+      
+      <!-- Stats View -->
+      <div class="view-container" id="statsView" style="display: none;">
+        <div class="stats-content">
+          <h2>Statistiken 📊</h2>
+          <p>Deine Fortschritte und Analysen</p>
+        </div>
+      </div>
+      
+      <!-- Settings View -->
+      <div class="view-container" id="settingsView" style="display: none;">
+        <div class="settings-content">
+          <h2>Einstellungen ⚙️</h2>
+          <p>App-Konfiguration</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab Navigation Bar -->
+    <div class="tab-bar">
+      <div class="tab-item" onclick="switchTab('home')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="tab-label">Home</span>
+      </div>
+      
+      <div class="tab-item active" onclick="switchTab('timeline')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="2" x2="12" y2="22"/>
+          <circle cx="12" cy="6" r="2"/>
+          <circle cx="12" cy="12" r="2"/>
+          <circle cx="12" cy="18" r="2"/>
+        </svg>
+        <span class="tab-label">Timeline</span>
+      </div>
+      
+      <!-- Central Add Button -->
+      <div class="tab-add-button" onclick="toggleAddMenu()">
+        <div class="add-button-inner" id="addButtonInner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </div>
+      </div>
+      
+      <div class="tab-item" onclick="switchTab('stats')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span class="tab-label">Stats</span>
+      </div>
+      
+      <div class="tab-item" onclick="switchTab('settings')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        <span class="tab-label">Settings</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Add Menu Overlay -->
+  <div class="add-menu-overlay" id="addMenuOverlay" onclick="closeAddMenu()">
+    <div class="add-menu" id="addMenu" onclick="event.stopPropagation()">
+      <div class="add-menu-item" onclick="addTask()">
+        <div class="add-menu-icon task">✓</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Task</div>
+          <div class="add-menu-subtitle">Neue Aufgabe hinzufügen</div>
+        </div>
+      </div>
+      <div class="add-menu-item" onclick="addHabit()">
+        <div class="add-menu-icon habit">🔥</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Habit</div>
+          <div class="add-menu-subtitle">Neue Gewohnheit starten</div>
+        </div>
+      </div>
+      <div class="add-menu-item" onclick="addChallenge()">
+        <div class="add-menu-icon challenge">⚡</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Challenge</div>
+          <div class="add-menu-subtitle">Neue Herausforderung</div>
+        </div>
+      </div>
+      <div class="add-menu-item" onclick="addNote()">
+        <div class="add-menu-icon note">📝</div>
+        <div class="add-menu-text">
+          <div class="add-menu-title">Add Note</div>
+          <div class="add-menu-subtitle">Notiz hinzufügen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Modal for Habits and Tasks -->
+  <div class="modal-overlay" id="addModalOverlay" onclick="closeAddItemModal()">
+    <div class="modal-content" id="addModalContent" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="modalTitle">Wähle eine Gewohnheit</h2>
+        <button class="modal-close-btn" onclick="closeAddItemModal()">×</button>
+      </div>
+      <div class="modal-search">
+        <input type="text" id="modalSearch" placeholder="Suchen..." oninput="filterModalItems()">
+      </div>
+      
+      <!-- Modal Items Container -->
+      <div class="modal-items" id="modalItems">
+        <!-- Items will be populated by JavaScript -->
+      </div>
+    </div>
+  </div>
+  
+  <!-- Custom Creation Modal -->
+  <div class="modal-overlay" id="customModalOverlay" onclick="closeCustomModal()">
+    <div class="modal-content custom-modal" id="customModalContent" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="customModalTitle">Neue Aufgabe erstellen</h2>
+        <button class="modal-close-btn" onclick="closeCustomModal()">×</button>
+      </div>
+      
+      <div class="custom-form">
+        <!-- Name Input -->
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="customName" placeholder="z.B. Yoga-Session" class="custom-input">
+        </div>
+        
+        <!-- Time Selection -->
+        <div class="form-group">
+          <label>Zeit</label>
+          <div class="time-selection">
+            <input type="time" id="customTime" class="custom-input time-input" value="09:00">
+            <input type="number" id="customDuration" min="5" max="480" step="5" placeholder="Dauer (Min)" class="custom-input duration-input">
+          </div>
+        </div>
+        
+        <!-- Date Selection -->
+        <div class="form-group">
+          <label>Datum</label>
+          <div class="date-selection">
+            <button class="date-btn active" data-date="today" onclick="selectDateOption(this)">Heute</button>
+            <button class="date-btn" data-date="tomorrow" onclick="selectDateOption(this)">Morgen</button>
+            <button class="date-btn" data-date="custom" onclick="selectDateOption(this)">Datum wählen</button>
+            <input type="date" id="customDate" class="custom-input" style="display:none;">
+          </div>
+        </div>
+        
+        <!-- Repeat Options -->
+        <div class="form-group">
+          <label>Wiederholung</label>
+          <div class="repeat-options">
+            <button class="repeat-btn active" data-repeat="none" onclick="selectRepeatOption(this)">Einmalig</button>
+            <button class="repeat-btn" data-repeat="daily" onclick="selectRepeatOption(this)">Täglich</button>
+            <button class="repeat-btn" data-repeat="weekly" onclick="selectRepeatOption(this)">Wöchentlich</button>
+            <button class="repeat-btn" data-repeat="custom" onclick="selectRepeatOption(this)">Benutzerdefiniert</button>
+          </div>
+          
+          <!-- Custom Repeat Days (hidden by default) -->
+          <div class="custom-repeat-days" id="customRepeatDays" style="display:none;">
+            <label class="day-checkbox"><input type="checkbox" value="mo"> Mo</label>
+            <label class="day-checkbox"><input type="checkbox" value="di"> Di</label>
+            <label class="day-checkbox"><input type="checkbox" value="mi"> Mi</label>
+            <label class="day-checkbox"><input type="checkbox" value="do"> Do</label>
+            <label class="day-checkbox"><input type="checkbox" value="fr"> Fr</label>
+            <label class="day-checkbox"><input type="checkbox" value="sa"> Sa</label>
+            <label class="day-checkbox"><input type="checkbox" value="so"> So</label>
+          </div>
+        </div>
+        
+        <!-- Category Input -->
+        <div class="form-group">
+          <label>Kategorie</label>
+          <input type="text" id="customCategory" placeholder="z.B. Fitness" class="custom-input" list="categoryList">
+          <datalist id="categoryList">
+            <option value="Morgenroutine">
+            <option value="Abendroutine">
+            <option value="Fitness">
+            <option value="Arbeit">
+            <option value="Gesundheit">
+            <option value="Lernen">
+            <option value="Haushalt">
+            <option value="Freizeit">
+          </datalist>
+        </div>
+        
+        <!-- Icon Picker -->
+        <div class="form-group">
+          <label>Icon auswählen</label>
+          <div class="icon-picker" id="iconPicker">
+            <div class="icon-option active" onclick="selectIcon(this)">✅</div>
+            <div class="icon-option" onclick="selectIcon(this)">📝</div>
+            <div class="icon-option" onclick="selectIcon(this)">💪</div>
+            <div class="icon-option" onclick="selectIcon(this)">🏃</div>
+            <div class="icon-option" onclick="selectIcon(this)">🧘</div>
+            <div class="icon-option" onclick="selectIcon(this)">📚</div>
+            <div class="icon-option" onclick="selectIcon(this)">💼</div>
+            <div class="icon-option" onclick="selectIcon(this)">🎯</div>
+            <div class="icon-option" onclick="selectIcon(this)">⭐</div>
+            <div class="icon-option" onclick="selectIcon(this)">🔥</div>
+            <div class="icon-option" onclick="selectIcon(this)">💡</div>
+            <div class="icon-option" onclick="selectIcon(this)">🎨</div>
+            <div class="icon-option" onclick="selectIcon(this)">🎵</div>
+            <div class="icon-option" onclick="selectIcon(this)">🍎</div>
+            <div class="icon-option" onclick="selectIcon(this)">💧</div>
+            <div class="icon-option" onclick="selectIcon(this)">☕</div>
+            <div class="icon-option" onclick="selectIcon(this)">🚀</div>
+            <div class="icon-option" onclick="selectIcon(this)">💻</div>
+            <div class="icon-option" onclick="selectIcon(this)">📱</div>
+            <div class="icon-option" onclick="selectIcon(this)">🏠</div>
+            <div class="icon-option" onclick="selectIcon(this)">🚗</div>
+            <div class="icon-option" onclick="selectIcon(this)">✈️</div>
+            <div class="icon-option" onclick="selectIcon(this)">🛒</div>
+            <div class="icon-option" onclick="selectIcon(this)">💰</div>
+            <div class="icon-option" onclick="selectIcon(this)">📊</div>
+            <div class="icon-option" onclick="selectIcon(this)">🌟</div>
+            <div class="icon-option" onclick="selectIcon(this)">⚡</div>
+            <div class="icon-option" onclick="selectIcon(this)">🎉</div>
+            <div class="icon-option" onclick="selectIcon(this)">❤️</div>
+            <div class="icon-option" onclick="selectIcon(this)">🌈</div>
+            <div class="icon-option" onclick="selectIcon(this)">🌸</div>
+            <div class="icon-option" onclick="selectIcon(this)">🦋</div>
+          </div>
+        </div>
+        
+        <!-- Color Picker -->
+        <div class="form-group">
+          <label>Farbe auswählen</label>
+          <div class="color-picker" id="colorPicker">
+            <div class="color-option active" data-color="#4B7BEC" style="background: #4B7BEC;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#5F27CD" style="background: #5F27CD;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#00D2D3" style="background: #00D2D3;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#10AC84" style="background: #10AC84;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#F368E0" style="background: #F368E0;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#FF6B6B" style="background: #FF6B6B;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#FFA502" style="background: #FFA502;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#FECA57" style="background: #FECA57;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#48DBFB" style="background: #48DBFB;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#A29BFE" style="background: #A29BFE;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#FD79A8" style="background: #FD79A8;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#BADC58" style="background: #BADC58;" onclick="selectColor(this)"></div>
+          </div>
+        </div>
+        
+        <!-- Priority Selection -->
+        <div class="form-group">
+          <label>Priorität</label>
+          <div class="priority-selection">
+            <button class="priority-btn" data-priority="low" onclick="selectPriority(this)">Niedrig</button>
+            <button class="priority-btn active" data-priority="medium" onclick="selectPriority(this)">Mittel</button>
+            <button class="priority-btn" data-priority="high" onclick="selectPriority(this)">Hoch</button>
+          </div>
+        </div>
+        
+        <!-- Notes/Description -->
+        <div class="form-group">
+          <label>Notizen (Optional)</label>
+          <textarea id="customNotes" placeholder="Zusätzliche Informationen..." class="custom-input" rows="3"></textarea>
+        </div>
+        
+        <!-- Submit Button -->
+        <button class="create-btn" onclick="createCustomItem()">
+          <span>Erstellen</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedDate = new Date();
+    const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+    
+    function daysInMonth(y, m){ 
+      return new Date(y, m+1, 0).getDate(); 
+    }
+    
+    function clampDay(y, m, d){ 
+      return Math.min(d, daysInMonth(y,m)); 
+    }
+
+    // Initialize SVG icons
+    function initializeSVGIcons() {
+      console.log('Initializing SVG icons...');
+      
+      // Specifically target timeline icons first with aggressive styling
+      const timelineIcons = document.querySelectorAll('.timeline-item-icon[data-icon]');
+      console.log('Found timeline icons:', timelineIcons.length);
+      
+      timelineIcons.forEach(element => {
+        const iconName = element.dataset.icon;
+        console.log('Loading timeline icon:', iconName);
+        const svgContent = getSVGIcon(iconName);
+        if (svgContent) {
+          // Clear and set content
+          element.innerHTML = '';
+          element.innerHTML = svgContent;
+          
+          // Force SVG to be visible with important styles
+          const svg = element.querySelector('svg');
+          if (svg) {
+            // Set attributes directly
+            svg.setAttribute('width', '20');
+            svg.setAttribute('height', '20');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'white');
+            svg.setAttribute('stroke-width', '2');
+            
+            // Apply aggressive inline styles
+            svg.style.cssText = 'display: block !important; width: 20px !important; height: 20px !important; stroke: white !important; stroke-width: 2 !important; fill: none !important; opacity: 1 !important; visibility: visible !important; position: relative !important; z-index: 1 !important;';
+          }
+        }
+      });
+      
+      // Then handle other icons
+      const otherIcons = document.querySelectorAll('[data-icon]:not(.timeline-item-icon)');
+      console.log('Found other icons:', otherIcons.length);
+      
+      otherIcons.forEach(element => {
+        const iconName = element.dataset.icon;
+        const svgContent = getSVGIcon(iconName);
+        if (svgContent) {
+          element.innerHTML = svgContent;
+          const svg = element.querySelector('svg');
+          if (svg) {
+            svg.style.display = 'block';
+            svg.style.width = '20px';
+            svg.style.height = '20px';
+            svg.style.stroke = 'white';
+            svg.style.strokeWidth = '2';
+            svg.style.fill = 'none';
+            svg.style.opacity = '1';
+          }
+        }
+      });
+    }
+    
+    // Update active tasks based on current time
+    function updateActiveTasksByTime() {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentTimeInMinutes = currentHour * 60 + currentMinute;
+      
+      // Remove all time-active classes and progress indicators
+      document.querySelectorAll('.task.time-active').forEach(task => {
+        task.classList.remove('time-active');
+        const progressBar = task.querySelector('.task-progress-bar');
+        if (progressBar) progressBar.remove();
+      });
+      
+      // Check each task
+      document.querySelectorAll('.task').forEach(task => {
+        const timeElement = task.querySelector('.task-time');
+        const subtitleElement = task.querySelector('.task-subtitle');
+        
+        if (timeElement) {
+          const timeText = timeElement.textContent.trim();
+          const [hours, minutes] = timeText.split(':').map(num => parseInt(num));
+          const taskStartTime = hours * 60 + minutes;
+          
+          // Extract duration from subtitle (e.g., "30 Min", "1 Std", "2 Std")
+          let durationMinutes = 30; // Default duration
+          if (subtitleElement) {
+            const subtitleText = subtitleElement.textContent;
+            const minMatch = subtitleText.match(/(\d+)\s*Min/);
+            const stdMatch = subtitleText.match(/(\d+)\s*Std/);
+            
+            if (minMatch) {
+              durationMinutes = parseInt(minMatch[1]);
+            } else if (stdMatch) {
+              durationMinutes = parseInt(stdMatch[1]) * 60;
+            }
+          }
+          
+          const taskEndTime = taskStartTime + durationMinutes;
+          
+          // Check if current time is within task duration
+          if (currentTimeInMinutes >= taskStartTime && currentTimeInMinutes < taskEndTime) {
+            task.classList.add('time-active');
+            
+            // Calculate progress
+            const elapsed = currentTimeInMinutes - taskStartTime;
+            const progress = (elapsed / durationMinutes) * 100;
+            const remaining = taskEndTime - currentTimeInMinutes;
+            
+            // Add progress bar
+            const progressBar = document.createElement('div');
+            progressBar.className = 'task-progress-bar';
+            progressBar.innerHTML = `
+              <div class="task-progress-fill" style="width: ${progress}%"></div>
+              <div class="task-progress-text">${remaining} Min verbleibend</div>
+            `;
+            task.appendChild(progressBar);
+          }
+        }
+      });
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCalendarDisplay();
+      generateDateSelector();
+      checkTodayButtonVisibility();
+      setupEventListeners();
+      loadUserTasks();
+      
+      // Initialize SVG icons multiple times to ensure they load
+      setTimeout(() => initializeSVGIcons(), 0);
+      setTimeout(() => initializeSVGIcons(), 100);
+      setTimeout(() => initializeSVGIcons(), 500);
+      setTimeout(() => initializeSVGIcons(), 1000);
+      
+      // Update active tasks immediately and every minute
+      updateActiveTasksByTime();
+      setInterval(updateActiveTasksByTime, 60000); // Update every minute
+    });
+
+    function setupEventListeners() {
+      // FAB
+      document.getElementById('fab').addEventListener('click', () => {
+        alert('Modal für neue Aufgabe würde sich öffnen');
+      });
+      
+      // Month/Year navigation
+      document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+      document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+      document.getElementById('prevYear').addEventListener('click', () => changeYear(-1));
+      document.getElementById('nextYear').addEventListener('click', () => changeYear(1));
+      
+      // Month dots clickable - direkt zu Monat springen
+      document.querySelectorAll('.month-dot').forEach((dot, idx) => {
+        dot.addEventListener('click', () => {
+          const currentYear = selectedDate.getFullYear();
+          selectedDate = new Date(currentYear, idx, 1);
+          const day = selectedDate.getDate();
+          selectedDate.setDate(clampDay(currentYear, idx, day));
+
+          // Animation
+          document.getElementById('monthDisplay').classList.add('swipe-left');
+          setTimeout(() => {
+            document.getElementById('monthDisplay').classList.remove('swipe-left');
+          }, 300);
+          
+          updateCalendarDisplay();
+          generateDateSelector();
+        });
+      });
+      
+      // Touch/Swipe Support für Monatswechsel
+      let touchStartX = 0;
+      let touchEndX = 0;
+      
+      const monthBar = document.querySelector('.month-bar');
+      monthBar.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, {passive: true});
+      
+      monthBar.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, {passive: true});
+      
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+          if (diff > 0) {
+            // Swipe left - next month
+            changeMonth(1);
+            document.getElementById('monthDisplay').classList.add('swipe-left');
+          } else {
+            // Swipe right - previous month
+            changeMonth(-1);
+            document.getElementById('monthDisplay').classList.add('swipe-right');
+          }
+          
+          setTimeout(() => {
+            document.getElementById('monthDisplay').classList.remove('swipe-left', 'swipe-right');
+          }, 300);
+        }
+      }
+
+      // Task checkboxes with localStorage
+      document.querySelectorAll('.task-check').forEach((check, index) => {
+        if (check.style.pointerEvents !== 'none') {
+          check.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const task = check.closest('.task');
+            const dot = task.querySelector('.task-dot');
+            const taskTitle = task.querySelector('.task-title')?.textContent || `task_${index}`;
+            const dateKey = `tasks_${selectedDate.toISOString().split('T')[0]}`;
+            
+            if (check.classList.contains('checked')) {
+              check.classList.remove('checked');
+              task.classList.remove('completed');
+              
+              // Animate unchecking
+              check.style.animation = 'uncheckRotate 0.3s ease';
+              setTimeout(() => {
+                check.style.animation = '';
+              }, 300);
+              
+              // Reset dot with animation
+              dot.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+              dot.style.background = 'var(--primary)';
+              dot.style.opacity = '0.8';
+              dot.style.transform = 'scale(1)';
+              
+              // Remove from localStorage
+              const states = JSON.parse(localStorage.getItem(dateKey) || '{}');
+              delete states[taskTitle];
+              localStorage.setItem(dateKey, JSON.stringify(states));
+            } else {
+              check.classList.add('checked');
+              task.classList.add('completed');
+              
+              // Animate dot with success effect
+              dot.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+              dot.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+              dot.style.opacity = '1';
+              dot.style.transform = 'scale(1.2)';
+              
+              setTimeout(() => {
+                dot.style.transform = 'scale(1)';
+                dot.style.opacity = '0.8';
+              }, 200);
+              
+              // Haptic feedback simulation with slight bounce
+              task.style.animation = 'taskComplete 0.4s ease';
+              setTimeout(() => {
+                task.style.animation = '';
+              }, 400);
+              
+              // Save to localStorage
+              const states = JSON.parse(localStorage.getItem(dateKey) || '{}');
+              states[taskTitle] = true;
+              localStorage.setItem(dateKey, JSON.stringify(states));
+              
+              // Celebration particles effect
+              createCompletionEffect(check);
+            }
+            
+            // Update progress
+            updateProgress();
+          });
+        }
+      });
+    }
+
+    function loadTaskStates() {
+      const dateKey = `tasks_${selectedDate.toISOString().split('T')[0]}`;
+      const states = JSON.parse(localStorage.getItem(dateKey) || '{}');
+      
+      document.querySelectorAll('.task').forEach((task) => {
+        const taskTitle = task.querySelector('.task-title')?.textContent;
+        const check = task.querySelector('.task-check');
+        const dot = task.querySelector('.task-dot');
+        
+        if (taskTitle && states[taskTitle]) {
+          task.classList.add('completed');
+          if (check) check.classList.add('checked');
+          if (dot) {
+            dot.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+            dot.style.opacity = '0.8';
+          }
+        } else {
+          task.classList.remove('completed');
+          if (check) check.classList.remove('checked');
+          if (dot) {
+            dot.style.background = 'var(--primary)';
+            dot.style.opacity = '0.8';
+          }
+        }
+      });
+      
+      updateProgress();
+    }
+    
+    // SVG Icon Library
+    const svgIcons = {
+  alarm: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M12 6v7l3 3"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4l3 3m10-3l3 3"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  alarm: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M12 6v7l3 3"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4l3 3m10-3l3 3"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  bed: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v11h18V7"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11h18"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M7 11v-4h3v4m4 0v-4h3v4"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  bed: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v11h18V7"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11h18"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M7 11v-4h3v4m4 0v-4h3v4"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  book: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  book: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  brain: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2a4.5 4.5 0 0 0-1 8.88V19a2 2 0 0 0 4 0v-1h1v1a2 2 0 0 0 4 0v-8.12A4.5 4.5 0 0 0 14.5 2h-5z"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  brain: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2a4.5 4.5 0 0 0-1 8.88V19a2 2 0 0 0 4 0v-1h1v1a2 2 0 0 0 4 0v-8.12A4.5 4.5 0 0 0 14.5 2h-5z"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  calendar: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="2" x2="16" y2="6"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="2" x2="8" y2="6"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="10" x2="21" y2="10"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  calendar: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="2" x2="16" y2="6"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="2" x2="8" y2="6"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="10" x2="21" y2="10"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  chart: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="20" x2="12" y2="4"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="6" y1="20" x2="6" y2="14"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  chart: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="20" x2="12" y2="4"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="6" y1="20" x2="6" y2="14"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  check: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  check: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  code: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/ stroke-linecap="round" stroke-linejoin="round"/><polyline points="8 6 2 12 8 18"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  code: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/ stroke-linecap="round" stroke-linejoin="round"/><polyline points="8 6 2 12 8 18"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  coffee: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M6 1v3m4-3v3m4-3v3"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  coffee: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M6 1v3m4-3v3m4-3v3"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  email: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/ stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  email: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/ stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  food: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4-8 4-8-4 8-4z"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10v12"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M4 6v12l8 4 8-4V6"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  food: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4-8 4-8-4 8-4z"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10v12"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M4 6v12l8 4 8-4V6"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  gym: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12h-4m-8 0H4m8-5v10"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="3"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="17" r="3"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="12" r="2"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="4" cy="12" r="2"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  gym: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12h-4m-8 0H4m8-5v10"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="3"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="17" r="3"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="12" r="2"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="4" cy="12" r="2"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  heart: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  heart: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  home: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/ stroke-linecap="round" stroke-linejoin="round"/><polyline points="9 22 9 12 15 12 15 22"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  home: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/ stroke-linecap="round" stroke-linejoin="round"/><polyline points="9 22 9 12 15 12 15 22"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  index-html-01: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></g></g></svg>`,
+  index-html-01: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></g></svg>`,
+  index-html-02: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6 6-6"/></g></g></svg>`,
+  index-html-02: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6 6-6"/></g></svg>`,
+  index-html-03: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="1" fill="none"/></g></g></svg>`,
+  index-html-03: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="1" fill="none"/></g></svg>`,
+  index-html-04: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle><circle class="progress-ring-fill" cx="16" cy="16" r="14" stroke-dasharray="88" stroke-dashoffset="0"></circle></g></g></svg>`,
+  index-html-04: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle><circle class="progress-ring-fill" cx="16" cy="16" r="14" stroke-dasharray="88" stroke-dashoffset="0"></circle></g></svg>`,
+  index-html-05: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle><circle class="progress-ring-fill" cx="16" cy="16" r="14" stroke-dasharray="88" stroke-dashoffset="88"></circle></g></g></svg>`,
+  index-html-05: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle class="progress-ring-bg" cx="16" cy="16" r="14"></circle><circle class="progress-ring-fill" cx="16" cy="16" r="14" stroke-dasharray="88" stroke-dashoffset="88"></circle></g></svg>`,
+  index-html-07: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g></g></svg>`,
+  index-html-07: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g></svg>`,
+  index-html-08: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></g></g></svg>`,
+  index-html-08: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></g></svg>`,
+  index-html-09: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g></g></svg>`,
+  index-html-09: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g></svg>`,
+  index-html-10: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></g></g></svg>`,
+  index-html-10: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></g></svg>`,
+  index-html-11: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></g></g></svg>`,
+  index-html-11: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></g></svg>`,
+  index-html-12: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 6v7l3 3"/><path d="M4 4l3 3m10-3l3 3"/></g></g></svg>`,
+  index-html-12: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 6v7l3 3"/><path d="M4 4l3 3m10-3l3 3"/></g></svg>`,
+  index-html-13: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/></g></g></svg>`,
+  index-html-13: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/></g></svg>`,
+  index-html-14: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M6 1v3m4-3v3m4-3v3"/></g></g></svg>`,
+  index-html-14: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M6 1v3m4-3v3m4-3v3"/></g></svg>`,
+  index-html-15: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4-8 4-8-4 8-4z"/><path d="M12 10v12"/><path d="M4 6v12l8 4 8-4V6"/></g></g></svg>`,
+  index-html-15: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4-8 4-8-4 8-4z"/><path d="M12 10v12"/><path d="M4 6v12l8 4 8-4V6"/></g></svg>`,
+  index-html-16: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/></g></g></svg>`,
+  index-html-16: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/></g></svg>`,
+  index-html-17: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12h-4m-8 0H4m8-5v10"/><circle cx="12" cy="7" r="3"/><circle cx="12" cy="17" r="3"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/></g></g></svg>`,
+  index-html-17: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12h-4m-8 0H4m8-5v10"/><circle cx="12" cy="7" r="3"/><circle cx="12" cy="17" r="3"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/></g></svg>`,
+  index-html-18: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g></g></svg>`,
+  index-html-18: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g></svg>`,
+  index-html-19: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></g></g></svg>`,
+  index-html-19: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></g></svg>`,
+  index-html-20: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></g></g></svg>`,
+  index-html-20: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></g></svg>`,
+  index-html-21: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M13 7v10l-4 4m6-14l-1 4l4 3l3-3"/></g></g></svg>`,
+  index-html-21: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M13 7v10l-4 4m6-14l-1 4l4 3l3-3"/></g></svg>`,
+  index-html-22: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M12 11v10m-5-10l-2 8h14l-2-8"/></g></g></svg>`,
+  index-html-22: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M12 11v10m-5-10l-2 8h14l-2-8"/></g></svg>`,
+  index-html-23: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></g></g></svg>`,
+  index-html-23: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></g></svg>`,
+  index-html-24: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></g></g></svg>`,
+  index-html-24: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></g></svg>`,
+  index-html-25: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></g></g></svg>`,
+  index-html-25: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></g></svg>`,
+  index-html-26: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g></g></svg>`,
+  index-html-26: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g></svg>`,
+  index-html-27: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g></g></svg>`,
+  index-html-27: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g></svg>`,
+  index-html-28: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8m-8 4h16m-8 0v8m-4-4v4m8-4v4m-12-8v4"/></g></g></svg>`,
+  index-html-28: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8m-8 4h16m-8 0v8m-4-4v4m8-4v4m-12-8v4"/></g></svg>`,
+  index-html-29: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v11h18V7"/><path d="M3 11h18"/><path d="M7 11v-4h3v4m4 0v-4h3v4"/></g></g></svg>`,
+  index-html-29: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v11h18V7"/><path d="M3 11h18"/><path d="M7 11v-4h3v4m4 0v-4h3v4"/></g></svg>`,
+  index-html-30: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="1"/></g></g></svg>`,
+  index-html-30: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="1"/></g></svg>`,
+  index-html-31: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></g></g></svg>`,
+  index-html-31: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></g></svg>`,
+  index-html-32: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></g></g></svg>`,
+  index-html-32: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></g></svg>`,
+  index-html-33: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2a4.5 4.5 0 0 0-1 8.88V19a2 2 0 0 0 4 0v-1h1v1a2 2 0 0 0 4 0v-8.12A4.5 4.5 0 0 0 14.5 2h-5z"/></g></g></svg>`,
+  index-html-33: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2a4.5 4.5 0 0 0-1 8.88V19a2 2 0 0 0 4 0v-1h1v1a2 2 0 0 0 4 0v-8.12A4.5 4.5 0 0 0 14.5 2h-5z"/></g></svg>`,
+  index-html-34: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></g></g></svg>`,
+  index-html-34: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></g></svg>`,
+  index-html-35: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></g></g></svg>`,
+  index-html-35: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></g></svg>`,
+  index-html-36: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></g></g></svg>`,
+  index-html-36: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></g></svg>`,
+  index-html-37: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></g></g></svg>`,
+  index-html-37: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></g></svg>`,
+  index-html-38: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></g></g></svg>`,
+  index-html-38: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></g></svg>`,
+  laptop: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  laptop: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  meditation: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11v10m-5-10l-2 8h14l-2-8"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  meditation: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11v10m-5-10l-2 8h14l-2-8"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  meeting: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  meeting: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  moon: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  moon: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  phone: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="1"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  phone: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="1"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  plus: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="12" x2="19" y2="12"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  plus: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/ stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="12" x2="19" y2="12"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  run: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7v10l-4 4m6-14l-1 4l4 3l3-3"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  run: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/ stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7v10l-4 4m6-14l-1 4l4 3l3-3"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  search: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/ stroke-linecap="round" stroke-linejoin="round"/><path d="m21 21-4.35-4.35"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  search: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/ stroke-linecap="round" stroke-linejoin="round"/><path d="m21 21-4.35-4.35"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  shower: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8m-8 4h16m-8 0v8m-4-4v4m8-4v4m-12-8v4"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  shower: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8m-8 4h16m-8 0v8m-4-4v4m8-4v4m-12-8v4"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  star: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  star: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  target: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="6"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="2"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  target: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="6"/ stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="2"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+  water: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/ stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>`,
+  water: `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/ stroke-linecap="round" stroke-linejoin="round"/></g></svg>`,
+};
+    
+    // Icon mapping for tasks (Emoji to SVG name)
+    const iconMapping = {
+      '⏰': 'alarm',
+      '👥': 'meeting',
+      '☕': 'coffee',
+      '🥗': 'food',
+      '🥣': 'food',
+      '🍳': 'food',
+      '🍎': 'food',
+      '🍴': 'food',
+      '💻': 'laptop',
+      '💪': 'gym',
+      '🌙': 'moon',
+      '📚': 'book',
+      '📖': 'book',
+      '💧': 'water',
+      '🏃': 'run',
+      '🚴': 'run',
+      '🏊': 'run',
+      '🧘': 'meditation',
+      '❤️': 'heart',
+      '⭐': 'star',
+      '✓': 'check',
+      '➕': 'plus',
+      '🏠': 'home',
+      '🚿': 'shower',
+      '🛁': 'shower',
+      '🛏️': 'bed',
+      '😴': 'bed',
+      '📱': 'phone',
+      '☎️': 'phone',
+      '📞': 'phone',
+      '📧': 'email',
+      '📝': 'email',
+      '✍️': 'email',
+      '🧠': 'brain',
+      '💡': 'brain',
+      '🎯': 'target',
+      '📊': 'chart',
+      '📈': 'chart',
+      '📅': 'calendar',
+      '🔍': 'search',
+      '🦷': 'heart',
+      '👔': 'home',
+      '💼': 'target',
+      '🎓': 'book',
+      '🎤': 'brain',
+      '🤸': 'gym',
+      '🧹': 'home',
+      '🧺': 'home',
+      '🛒': 'home',
+      '🪴': 'home',
+      '🗑️': 'home',
+      '💊': 'heart',
+      '🩺': 'heart',
+      '📺': 'phone',
+      '👫': 'meeting',
+      '💌': 'email',
+      '🎁': 'star',
+      '💰': 'chart',
+      '💳': 'chart',
+      '📋': 'chart',
+      '💵': 'chart'
+    };
+    
+    // Helper function to get SVG icon
+    function getSVGIcon(name) {
+      return svgIcons[name] || svgIcons.star;
+    }
+    
+    // Create completion celebration effect
+    function createCompletionEffect(element) {
+      const colors = ['#667eea', '#764ba2', '#f093fb', '#10b981', '#34d399'];
+      const particleCount = 8;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'completion-particle';
+        
+        const angle = (360 / particleCount) * i;
+        const distance = 30 + Math.random() * 20;
+        const tx = Math.cos(angle * Math.PI / 180) * distance;
+        const ty = Math.sin(angle * Math.PI / 180) * distance;
+        
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.left = '50%';
+        particle.style.top = '50%';
+        particle.style.transform = 'translate(-50%, -50%)';
+        
+        element.appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 800);
+      }
+      
+      // Add a subtle glow effect
+      element.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.6)';
+      setTimeout(() => {
+        element.style.boxShadow = '0 4px 16px rgba(102, 126, 234, 0.3)';
+      }, 300);
+      
+      // Play success sound (using Web Audio API)
+      playSuccessSound();
+      
+      // Show success message
+      showSuccessToast();
+    }
+    
+    // Play a subtle success sound
+    function playSuccessSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Create oscillator for a pleasant "ding" sound
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800; // High pitch for success
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+      
+      // Second tone for harmony
+      const oscillator2 = audioContext.createOscillator();
+      const gainNode2 = audioContext.createGain();
+      
+      oscillator2.connect(gainNode2);
+      gainNode2.connect(audioContext.destination);
+      
+      oscillator2.frequency.value = 1000;
+      oscillator2.type = 'sine';
+      
+      gainNode2.gain.setValueAtTime(0.2, audioContext.currentTime + 0.05);
+      gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+      
+      oscillator2.start(audioContext.currentTime + 0.05);
+      oscillator2.stop(audioContext.currentTime + 0.25);
+    }
+    
+    // Show success toast notification
+    function showSuccessToast() {
+      const messages = [
+        '✨ Großartig!',
+        '🎯 Ziel erreicht!',
+        '💪 Weiter so!',
+        '⭐ Perfekt!',
+        '🏆 Super gemacht!',
+        '🎉 Fantastisch!',
+        '🚀 Toll!',
+        '👏 Bravo!'
+      ];
+      
+      const toast = document.createElement('div');
+      toast.className = 'success-toast';
+      toast.textContent = messages[Math.floor(Math.random() * messages.length)];
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 2000);
+    }
+    
+    function updateProgress() {
+      document.querySelectorAll('.time-block').forEach(block => {
+        const tasks = block.querySelectorAll('.task');
+        const completedTasks = block.querySelectorAll('.task.completed');
+        
+        const progressPercentage = block.querySelector('.progress-percentage');
+        const progressInfo = block.querySelector('.progress-info');
+        const progressRingFill = block.querySelector('.progress-ring-fill');
+        
+        // Prüfen ob Tasks vorhanden sind
+        if (tasks.length === 0) {
+          if (progressPercentage) progressPercentage.textContent = '0%';
+          if (progressInfo) progressInfo.textContent = '0/0';
+          if (progressRingFill) progressRingFill.setAttribute('stroke-dashoffset', '88');
+          return;
+        }
+        
+        const percentage = Math.round((completedTasks.length / tasks.length) * 100);
+        
+        if (progressPercentage) progressPercentage.textContent = `${percentage}%`;
+        if (progressInfo) progressInfo.textContent = `${completedTasks.length}/${tasks.length}`;
+        if (progressRingFill) {
+          // Umfang bei radius 14 ist 2*PI*14 = 88
+          progressRingFill.setAttribute('stroke-dashoffset', 88 - (88 * percentage / 100));
+        }
+      });
+    }
+
+    function updateCalendarDisplay() {
+      const y = selectedDate.getFullYear();
+      const m = selectedDate.getMonth();
+      
+      // Update year and month displays
+      const yearText = document.getElementById('yearText');
+      const monthName = document.getElementById('monthName');
+      
+      if (yearText) yearText.textContent = y;
+      if (monthName) monthName.textContent = monthNames[m];
+      
+      // Update month dots (12 dots for 12 months)
+      const dots = document.querySelectorAll('.month-dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.remove('active');
+        if (idx === m) dot.classList.add('active');
+      });
+
+      // Load saved task states for the selected date
+      loadTaskStates();
+      
+      // Heute-Button verstecken wenn bereits heute
+      const todayBtn = document.querySelector('.today-btn-nav');
+      if (todayBtn) {
+        const today = new Date();
+        const isSameDay = selectedDate.getDate() === today.getDate() && 
+                         selectedDate.getMonth() === today.getMonth() && 
+                         selectedDate.getFullYear() === today.getFullYear();
+        todayBtn.style.display = isSameDay ? 'none' : 'flex';
+      }
+    }
+    
+    // Neue Funktion für Heute-Button
+    function goToToday() {
+      const today = new Date();
+      selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      updateCalendarDisplay();
+      generateDateSelector();
+      checkTodayButtonVisibility();
+      
+      // Scroll zum heutigen Tag in der Datumsauswahl
+      setTimeout(() => {
+        const todayElement = document.querySelector('.date-item.today');
+        if (todayElement) {
+          todayElement.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+        }
+      }, 100);
+    }
+    
+    function loadUserTasks() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Filter tasks for today
+      const todayTasks = tasks.filter(task => task.date === dateStr);
+      
+      // Group tasks by time period
+      const morningTasks = todayTasks.filter(task => {
+        const hour = parseInt(task.time.split(':')[0]);
+        return hour >= 6 && hour < 12;
+      });
+      
+      const afternoonTasks = todayTasks.filter(task => {
+        const hour = parseInt(task.time.split(':')[0]);
+        return hour >= 12 && hour < 18;
+      });
+      
+      const eveningTasks = todayTasks.filter(task => {
+        const hour = parseInt(task.time.split(':')[0]);
+        return hour >= 18 && hour < 23;
+      });
+      
+      // Add tasks to timeline sections
+      addTasksToSection('morning', morningTasks);
+      addTasksToSection('afternoon', afternoonTasks);
+      addTasksToSection('evening', eveningTasks);
+    }
+    
+    function addTasksToSection(sectionName, tasks) {
+      const sectionMap = {
+        'morning': document.querySelector('.timeline-section:nth-child(1) .timeline-items'),
+        'afternoon': document.querySelector('.timeline-section:nth-child(2) .timeline-items'),
+        'evening': document.querySelector('.timeline-section:nth-child(3) .timeline-items')
+      };
+      
+      const section = sectionMap[sectionName];
+      if (!section) return;
+      
+      tasks.sort((a, b) => a.time.localeCompare(b.time));
+      
+      tasks.forEach(task => {
+        const taskElement = document.createElement('div');
+        taskElement.className = 'timeline-item';
+        taskElement.innerHTML = `
+          <div class="task-time">${task.time}</div>
+          <div class="task-dot" style="background: var(--cat-${task.icon}, #6CA6FF);"></div>
+          <div class="task-content">
+            <div class="timeline-item-icon" data-icon="${task.icon}"></div>
+            <div class="task-info">
+              <div class="task-title">${task.title}</div>
+              <div class="task-subtitle">${task.category}</div>
+            </div>
+          </div>
+          <div class="task-check"></div>
+        `;
+        
+        // Insert task in chronological order
+        const items = section.querySelectorAll('.timeline-item');
+        let inserted = false;
+        
+        for (let item of items) {
+          const itemTime = item.querySelector('.task-time')?.textContent;
+          if (itemTime && itemTime > task.time) {
+            section.insertBefore(taskElement, item);
+            inserted = true;
+            break;
+          }
+        }
+        
+        if (!inserted) {
+          section.appendChild(taskElement);
+        }
+      });
+      
+      // Re-initialize icons for new elements
+      setTimeout(() => initializeSVGIcons(), 100);
+    }
+
+    function checkTodayButtonVisibility() {
+      const todayBtn = document.querySelector('.today-btn-nav');
+      if (todayBtn) {
+        const today = new Date();
+        const isSameDay = selectedDate.getDate() === today.getDate() && 
+                         selectedDate.getMonth() === today.getMonth() && 
+                         selectedDate.getFullYear() === today.getFullYear();
+        todayBtn.style.display = isSameDay ? 'none' : 'flex';
+      }
+    }
+    
+    function changeMonth(delta){
+      const y = selectedDate.getFullYear();
+      const m = selectedDate.getMonth();
+      const d = selectedDate.getDate();
+      const newMonth = m + delta;
+      const newDate = new Date(y, newMonth, 1);
+      
+      // Tag beibehalten, aber clampen
+      newDate.setDate(clampDay(newDate.getFullYear(), newDate.getMonth(), d));
+      selectedDate = newDate;
+      
+      updateCalendarDisplay();
+      generateDateSelector();
+      checkTodayButtonVisibility();
+    }
+
+    function changeYear(delta){
+      const y = selectedDate.getFullYear() + delta;
+      const m = selectedDate.getMonth();
+      const d = selectedDate.getDate();
+      const newDate = new Date(y, m, 1);
+      newDate.setDate(clampDay(y, m, d));
+      selectedDate = newDate;
+      
+      // Animation trigger
+      const yearDisplay = document.getElementById('yearDisplay');
+      yearDisplay.classList.add('changing');
+      setTimeout(() => {
+        yearDisplay.classList.remove('changing');
+      }, 300);
+      
+      updateCalendarDisplay();
+      generateDateSelector();
+    }
+
+    function generateDateSelector() {
+      const selector = document.getElementById('dateSelector');
+      selector.innerHTML = '';
+
+      const y = selectedDate.getFullYear();
+      const m = selectedDate.getMonth();
+      const total = daysInMonth(y, m);
+      const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+      for (let day = 1; day <= total; day++) {
+        const date = new Date(y, m, day);
+
+        const item = document.createElement('div');
+        item.className = 'date-item';
+        if (date.toDateString() === new Date().toDateString()) item.classList.add('today');
+        if (date.toDateString() === selectedDate.toDateString()) item.classList.add('active');
+
+        item.innerHTML = `
+          <div class="date-day">${dayNames[date.getDay()]}</div>
+          <div class="date-num">${day}</div>
+        `;
+
+        item.addEventListener('click', () => {
+          const prev = selector.querySelector('.date-item.active');
+          if (prev) prev.classList.remove('active');
+          item.classList.add('active');
+          selectedDate = new Date(y, m, day);
+          updateCalendarDisplay();
+          checkTodayButtonVisibility();
+        });
+
+        selector.appendChild(item);
+      }
+
+      // aktive in Sicht scrollen
+      setTimeout(() => {
+        selector.querySelector('.date-item.active')?.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+      }, 50);
+    }
+    
+    // Tab Navigation Functions
+    function switchTab(tabName) {
+      // Remove active class from all tabs
+      document.querySelectorAll('.tab-item').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Add active class to selected tab
+      event.currentTarget.classList.add('active');
+      
+      // Hide all views
+      document.querySelectorAll('.view-container').forEach(view => {
+        view.style.display = 'none';
+      });
+      
+      // Show selected view
+      const viewId = tabName + 'View';
+      const selectedView = document.getElementById(viewId);
+      if (selectedView) {
+        selectedView.style.display = 'block';
+      }
+      
+      console.log('Switched to tab:', tabName);
+      closeAddMenu(); // Close menu when switching tabs
+    }
+    
+    // Add Menu Functions
+    let addMenuOpen = false;
+    
+    function toggleAddMenu() {
+      if (addMenuOpen) {
+        closeAddMenu();
+      } else {
+        openAddMenu();
+      }
+    }
+    
+    function openAddMenu() {
+      addMenuOpen = true;
+      document.getElementById('addMenuOverlay').classList.add('active');
+      document.getElementById('addMenu').classList.add('active');
+      document.getElementById('addButtonInner').style.transform = 'rotate(45deg)';
+    }
+    
+    function closeAddMenu() {
+      addMenuOpen = false;
+      document.getElementById('addMenuOverlay').classList.remove('active');
+      document.getElementById('addMenu').classList.remove('active');
+      document.getElementById('addButtonInner').style.transform = 'rotate(0deg)';
+    }
+    
+    // Predefined Habits Database
+    const habitsDatabase = [
+      { icon: '💧', name: 'Wasser trinken', category: 'Gesundheit', description: '8 Gläser am Tag' },
+      { icon: '🧘', name: 'Meditation', category: 'Achtsamkeit', description: '10 Minuten Ruhe' },
+      { icon: '📚', name: 'Lesen', category: 'Bildung', description: '20 Seiten täglich' },
+      { icon: '🏃', name: 'Laufen', category: 'Fitness', description: '5km joggen' },
+      { icon: '💪', name: 'Workout', category: 'Fitness', description: 'Krafttraining' },
+      { icon: '🧙', name: 'Yoga', category: 'Fitness', description: 'Morgen-Routine' },
+      { icon: '🍎', name: 'Gesundes Frühstück', category: 'Ernährung', description: 'Ausgewogen starten' },
+      { icon: '🥗', name: 'Gemüse essen', category: 'Ernährung', description: '5 Portionen' },
+      { icon: '✍️', name: 'Journaling', category: 'Achtsamkeit', description: 'Gedanken aufschreiben' },
+      { icon: '😴', name: 'Früh schlafen', category: 'Schlaf', description: 'Vor 23 Uhr' },
+      { icon: '☀️', name: 'Früh aufstehen', category: 'Produktivität', description: '6 Uhr morgens' },
+      { icon: '🚶', name: 'Spaziergang', category: 'Bewegung', description: '30 Minuten' },
+      { icon: '🎵', name: 'Instrument üben', category: 'Hobbys', description: '15 Minuten' },
+      { icon: '🎨', name: 'Kreativ sein', category: 'Hobbys', description: 'Malen oder Zeichnen' },
+      { icon: '📞', name: 'Familie anrufen', category: 'Soziales', description: 'Kontakt halten' },
+      { icon: '🧘‍♂️', name: 'Stretching', category: 'Fitness', description: 'Flexibilität' },
+      { icon: '📵', name: 'Digital Detox', category: 'Achtsamkeit', description: '1 Stunde offline' },
+      { icon: '🌱', name: 'Pflanzen gießen', category: 'Haushalt', description: 'Pflanzenpflege' },
+      { icon: '🧹', name: 'Aufräumen', category: 'Haushalt', description: '15 Min. Ordnung' },
+      { icon: '💰', name: 'Sparen', category: 'Finanzen', description: '10€ beiseite' },
+      { icon: '🌍', name: 'Sprache lernen', category: 'Bildung', description: '1 Lektion' },
+      { icon: '😊', name: 'Lächeln', category: 'Achtsamkeit', description: 'Positiv bleiben' },
+      { icon: '🤝', name: 'Helfen', category: 'Soziales', description: 'Gute Tat' },
+      { icon: '🎯', name: 'Ziele setzen', category: 'Produktivität', description: 'Tagesplanung' }
+    ];
+
+    // Predefined Tasks Database
+    const tasksDatabase = [
+      // Morgenroutine
+      { icon: '⏰', name: 'Aufstehen', category: 'Morgenroutine', time: '06:00' },
+      { icon: '🚿', name: 'Duschen', category: 'Morgenroutine', time: '06:15' },
+      { icon: '☕', name: 'Kaffee/Tee', category: 'Morgenroutine', time: '06:30' },
+      { icon: '🥣', name: 'Frühstück', category: 'Morgenroutine', time: '07:00' },
+      { icon: '🦷', name: 'Zähne putzen', category: 'Morgenroutine', time: '07:30' },
+      { icon: '👔', name: 'Anziehen', category: 'Morgenroutine', time: '07:45' },
+      
+      // Arbeit
+      { icon: '📧', name: 'E-Mails checken', category: 'Arbeit', time: '09:00' },
+      { icon: '📝', name: 'Meeting vorbereiten', category: 'Arbeit', time: '10:00' },
+      { icon: '📊', name: 'Präsentation erstellen', category: 'Arbeit', time: '14:00' },
+      { icon: '📞', name: 'Kundenanruf', category: 'Arbeit', time: '11:00' },
+      { icon: '👥', name: 'Team-Meeting', category: 'Arbeit', time: '10:00' },
+      { icon: '💻', name: 'Code Review', category: 'Arbeit', time: '14:30' },
+      { icon: '🔍', name: 'Recherche', category: 'Arbeit', time: '11:30' },
+      { icon: '📈', name: 'Bericht schreiben', category: 'Arbeit', time: '13:00' },
+      { icon: '📅', name: 'Termin vereinbaren', category: 'Arbeit', time: '10:30' },
+      { icon: '💼', name: 'Projektplanung', category: 'Arbeit', time: '09:30' },
+      
+      // Lernen & Bildung
+      { icon: '📚', name: 'Lesen (30 Min)', category: 'Lernen', time: '20:00' },
+      { icon: '✍️', name: 'Tagebuch schreiben', category: 'Lernen', time: '21:00' },
+      { icon: '🎓', name: 'Online-Kurs', category: 'Lernen', time: '19:00' },
+      { icon: '📖', name: 'Hausaufgaben', category: 'Lernen', time: '16:00' },
+      { icon: '🎤', name: 'Podcast hören', category: 'Lernen', time: '07:45' },
+      { icon: '💡', name: 'Neue Fähigkeit üben', category: 'Lernen', time: '18:00' },
+      
+      // Fitness
+      { icon: '🏃', name: 'Joggen (30 Min)', category: 'Fitness', time: '06:30' },
+      { icon: '💪', name: 'Krafttraining', category: 'Fitness', time: '17:00' },
+      { icon: '🧘', name: 'Yoga-Session', category: 'Fitness', time: '07:00' },
+      { icon: '🚴', name: 'Radfahren', category: 'Fitness', time: '16:30' },
+      { icon: '🏊', name: 'Schwimmen', category: 'Fitness', time: '18:00' },
+      { icon: '🤸', name: 'Stretching', category: 'Fitness', time: '22:00' },
+      
+      // Haushalt
+      { icon: '🧹', name: 'Wohnung putzen', category: 'Haushalt', time: '10:00' },
+      { icon: '🧺', name: 'Wäsche waschen', category: 'Haushalt', time: '11:00' },
+      { icon: '🍳', name: 'Kochen', category: 'Haushalt', time: '18:30' },
+      { icon: '🛒', name: 'Einkaufen', category: 'Haushalt', time: '17:00' },
+      { icon: '🪴', name: 'Pflanzen gießen', category: 'Haushalt', time: '09:00' },
+      { icon: '🗑️', name: 'Müll rausbringen', category: 'Haushalt', time: '08:00' },
+      
+      // Gesundheit
+      { icon: '💊', name: 'Medikamente nehmen', category: 'Gesundheit', time: '08:00' },
+      { icon: '💧', name: 'Wasser trinken', category: 'Gesundheit', time: '10:00' },
+      { icon: '🍎', name: 'Gesunder Snack', category: 'Gesundheit', time: '15:00' },
+      { icon: '🩺', name: 'Arzttermin', category: 'Gesundheit', time: '14:00' },
+      { icon: '😴', name: 'Mittagsschlaf', category: 'Gesundheit', time: '13:00' },
+      
+      // Abendroutine
+      { icon: '🍴', name: 'Abendessen', category: 'Abendroutine', time: '19:00' },
+      { icon: '📺', name: 'Serie schauen', category: 'Abendroutine', time: '20:00' },
+      { icon: '🛁', name: 'Baden/Entspannen', category: 'Abendroutine', time: '21:00' },
+      { icon: '📱', name: 'Handy weglegen', category: 'Abendroutine', time: '22:00' },
+      { icon: '🌙', name: 'Schlafenszeit', category: 'Abendroutine', time: '23:00' },
+      
+      // Soziales
+      { icon: '☎️', name: 'Familie anrufen', category: 'Soziales', time: '19:30' },
+      { icon: '👫', name: 'Freunde treffen', category: 'Soziales', time: '18:00' },
+      { icon: '💌', name: 'Nachricht schreiben', category: 'Soziales', time: '20:30' },
+      { icon: '🎁', name: 'Geschenk besorgen', category: 'Soziales', time: '16:00' },
+      
+      // Finanzen
+      { icon: '💰', name: 'Budget überprüfen', category: 'Finanzen', time: '20:00' },
+      { icon: '📝', name: 'Rechnungen bezahlen', category: 'Finanzen', time: '19:00' },
+      { icon: '🏦', name: 'Banking erledigen', category: 'Finanzen', time: '11:00' },
+      
+      // Freizeit
+      { icon: '🎮', name: 'Gaming', category: 'Freizeit', time: '20:30' },
+      { icon: '🎵', name: 'Musik hören', category: 'Freizeit', time: '21:00' },
+      { icon: '🎨', name: 'Kreativ sein', category: 'Freizeit', time: '15:00' },
+      { icon: '🏖️', name: 'Entspannen', category: 'Freizeit', time: '14:00' }
+    ];
+
+    let currentModalType = '';
+    let filteredItems = [];
+
+    function addTask() {
+      console.log('addTask called');
+      closeAddMenu();
+      currentModalType = 'task';
+      openAddItemModal('task');
+    }
+    
+    function addHabit() {
+      console.log('addHabit called');
+      closeAddMenu();
+      currentModalType = 'habit';
+      openAddItemModal('habit');
+    }
+
+    function openAddItemModal(type) {
+      console.log('Opening modal for:', type);
+      
+      const modal = document.getElementById('addModalOverlay');
+      const title = document.getElementById('modalTitle');
+      const items = document.getElementById('modalItems');
+      const search = document.getElementById('modalSearch');
+      
+      console.log('Modal elements:', { modal, title, items, search });
+      
+      if (!modal) {
+        console.error('Modal overlay not found!');
+        // Try to list all elements with modal in their ID
+        document.querySelectorAll('[id*="modal"]').forEach(el => {
+          console.log('Found element with modal in ID:', el.id);
+        });
+        return;
+      }
+      
+      if (!title || !items || !search) {
+        console.error('Some modal elements not found', { title, items, search });
+        return;
+      }
+      
+      // Reset search
+      search.value = '';
+      
+      // Set title
+      title.textContent = type === 'habit' ? 'Wähle eine Gewohnheit' : 'Wähle eine Aufgabe';
+      
+      // Load items
+      const database = type === 'habit' ? habitsDatabase : tasksDatabase;
+      filteredItems = [...database];
+      
+      renderModalItems();
+      
+      // Show modal
+      console.log('Adding active class to modal');
+      modal.classList.add('active');
+      modal.style.display = 'flex'; // Force display as backup
+      setTimeout(() => {
+        if (search) search.focus();
+      }, 100);
+    }
+
+    function renderModalItems() {
+      const itemsContainer = document.getElementById('modalItems');
+      const type = currentModalType;
+      
+      // Group items by category
+      const categories = {};
+      filteredItems.forEach(item => {
+        if (!categories[item.category]) {
+          categories[item.category] = [];
+        }
+        categories[item.category].push(item);
+      });
+      
+      // Sort categories
+      const sortedCategories = Object.keys(categories).sort();
+      
+      // Category icons
+      const categoryIcons = {
+        'Morgenroutine': '🌅',
+        'Abendroutine': '🌙',
+        'Fitness': '💪',
+        'Gesundheit': '❤️',
+        'Arbeit': '💼',
+        'Lernen': '📚',
+        'Haushalt': '🏠',
+        'Freizeit': '🎮',
+        'Ernährung': '🍎',
+        'Achtsamkeit': '🧘',
+        'Soziales': '👥',
+        'Kreativität': '🎨',
+        'Finanzen': '💰',
+        'Bildung': '🎓'
+      };
+      
+      // Create HTML with custom button at top and accordion categories
+      let html = `
+        <div class="modal-item custom-create-item" onclick="openCustomModal('${type}')" style="
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+          border: 1px solid rgba(99, 102, 241, 0.2);
+          margin-bottom: 20px;
+        ">
+          <div class="modal-item-icon" style="background: linear-gradient(135deg, var(--primary), rgba(99, 102, 241, 0.7));">
+            <span style="font-size: 20px; color: white;">+</span>
+          </div>
+          <div class="modal-item-content">
+            <div class="modal-item-name" style="color: var(--primary); font-weight: 700;">
+              Eigene ${type === 'habit' ? 'Gewohnheit' : 'Aufgabe'} erstellen
+            </div>
+            <div class="modal-item-meta">
+              <span class="modal-item-desc">Komplett anpassbar</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add accordion categories
+      sortedCategories.forEach((category, index) => {
+        const items = categories[category];
+        const categoryId = 'category-' + index;
+        
+        html += `
+          <div class="category-section" id="${categoryId}">
+            <div class="category-header" onclick="toggleCategory('${categoryId}')">
+              <div class="category-title">
+                <div class="category-icon">${categoryIcons[category] || '📁'}</div>
+                <div class="category-info">
+                  <div class="category-name">${category}</div>
+                  <div class="category-count">${items.length} ${type === 'habit' ? 'Gewohnheiten' : 'Aufgaben'}</div>
+                </div>
+              </div>
+              <svg class="category-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+            <div class="category-items">
+              ${items.map(item => `
+                <div class="modal-item" onclick="selectItem('${item.name.replace(/'/g, "\\'")}', '${item.icon || '📌'}', '${item.category}', '${item.time || ''}')">
+                  <div class="modal-item-icon" data-icon="${iconMapping[item.icon] || 'star'}" style="
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                  "></div>
+                  <div class="modal-item-content">
+                    <div class="modal-item-name">${item.name}</div>
+                    <div class="modal-item-meta">
+                      ${item.description ? `<span class="modal-item-desc">${item.description}</span>` : ''}
+                      ${item.time ? `<span class="modal-item-time" style="
+                        background: rgba(99, 102, 241, 0.1);
+                        padding: 2px 8px;
+                        border-radius: 6px;
+                        font-size: 11px;
+                      ">🕐 ${item.time}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+      
+      itemsContainer.innerHTML = html;
+      
+      // Expand first category by default
+      if (sortedCategories.length > 0) {
+        document.getElementById('category-0')?.classList.add('expanded');
+      }
+      
+      // Initialize SVG icons for modal items
+      setTimeout(() => {
+        document.querySelectorAll('#modalItems [data-icon]').forEach(element => {
+          const iconName = element.dataset.icon;
+          element.innerHTML = getSVGIcon(iconName);
+        });
+      }, 10);
+    }
+    
+    function toggleCategory(categoryId) {
+      const section = document.getElementById(categoryId);
+      if (section) {
+        section.classList.toggle('expanded');
+      }
+    }
+
+    function filterModalItems() {
+      const search = document.getElementById('modalSearch').value.toLowerCase();
+      const database = currentModalType === 'habit' ? habitsDatabase : tasksDatabase;
+      
+      if (!search) {
+        filteredItems = [...database];
+      } else {
+        filteredItems = database.filter(item => 
+          item.name.toLowerCase().includes(search) ||
+          item.category.toLowerCase().includes(search) ||
+          (item.description && item.description.toLowerCase().includes(search))
+        );
+      }
+      
+      renderModalItems();
+    }
+
+    function selectItem(name, icon, category, time) {
+      console.log('Selected:', { name, icon, category, time, type: currentModalType });
+      
+      // Get current date
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Create new task/habit
+      const newItem = {
+        id: Date.now().toString(),
+        title: name,
+        icon: iconMapping[icon] || 'star',
+        time: time || '09:00',
+        type: currentModalType,
+        category: category,
+        completed: false,
+        date: dateStr
+      };
+      
+      // Get existing tasks from localStorage
+      let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      
+      // Add new task
+      tasks.push(newItem);
+      
+      // Save to localStorage
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      
+      // Refresh the page to show new task
+      // This is a simple solution - in production you'd update the DOM directly
+      location.reload();
+      
+      // Show confirmation
+      const message = currentModalType === 'habit' 
+        ? `Gewohnheit "${name}" wurde hinzugefügt!`
+        : `Aufgabe "${name}" wurde hinzugefügt!`;
+      
+      // Close modal
+      closeAddItemModal();
+      
+      // Show brief confirmation
+      showToast(message);
+    }
+
+    function closeAddItemModal() {
+      const modal = document.getElementById('addModalOverlay');
+      modal.classList.remove('active');
+    }
+
+    function showToast(message) {
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => toast.classList.add('show'), 10);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+    
+    function addChallenge() {
+      closeAddMenu();
+      console.log('Add Challenge clicked');
+      // Hier würde das Challenge-Modal geöffnet
+      alert('Challenge hinzufügen - Modal würde sich öffnen');
+    }
+    
+    function addNote() {
+      closeAddMenu();
+      console.log('Add Note clicked');
+      // Hier würde das Note-Modal geöffnet
+      alert('Notiz hinzufügen - Modal würde sich öffnen');
+    }
+    
+    // Month Picker Functions
+    function showMonthPicker() {
+      const modal = document.getElementById('monthPickerModal');
+      const grid = document.getElementById('monthPickerGrid');
+      const currentMonth = selectedDate.getMonth();
+      
+      // Clear grid
+      grid.innerHTML = '';
+      
+      // Add months
+      monthNames.forEach((month, index) => {
+        const item = document.createElement('div');
+        item.className = 'month-picker-item';
+        if (index === currentMonth) {
+          item.classList.add('active');
+        }
+        item.textContent = month;
+        item.onclick = () => selectMonth(index);
+        grid.appendChild(item);
+      });
+      
+      modal.classList.add('show');
+    }
+    
+    function closeMonthPicker(event) {
+      if (event && event.target === event.currentTarget) {
+        document.getElementById('monthPickerModal').classList.remove('show');
+      }
+    }
+    
+    function selectMonth(monthIndex) {
+      const y = selectedDate.getFullYear();
+      const d = selectedDate.getDate();
+      selectedDate = new Date(y, monthIndex, clampDay(y, monthIndex, d));
+      
+      updateCalendarDisplay();
+      generateDateSelector();
+      closeMonthPicker({ target: document.getElementById('monthPickerModal'), currentTarget: document.getElementById('monthPickerModal') });
+    }
+    
+    // Custom Creation Modal Functions
+    let customModalType = 'task';
+    let selectedRepeatOption = 'none';
+    let selectedDateOption = 'today';
+    let selectedPriority = 'medium';
+    let selectedIcon = '🎯';
+    let selectedColor = '#4b7bec';
+    let selectedDays = [];
+    
+    function openCustomModal(type) {
+      customModalType = type;
+      document.getElementById('customModalTitle').textContent = type === 'task' ? 'Neue Aufgabe erstellen' : 'Neue Gewohnheit erstellen';
+      document.getElementById('customModalOverlay').classList.add('active');
+      
+      // Reset form
+      document.getElementById('customName').value = '';
+      document.getElementById('customTime').value = '09:00';
+      document.getElementById('customDuration').value = '';
+      document.getElementById('customCategory').value = '';
+      document.getElementById('customNotes').value = '';
+      
+      // Reset selections
+      selectDateOption(document.querySelector('.date-btn[data-date="today"]'));
+      selectRepeatOption(document.querySelector('.repeat-btn[data-repeat="none"]'));
+      selectPriority(document.querySelector('.priority-btn[data-priority="medium"]'));
+      
+      // Select first icon and color by default
+      const firstIcon = document.querySelector('.icon-option');
+      if (firstIcon) selectIcon(firstIcon);
+      
+      const firstColor = document.querySelector('.color-option');
+      if (firstColor) selectColor(firstColor);
+      
+      closeAddMenu();
+    }
+    
+    function closeCustomModal() {
+      document.getElementById('customModalOverlay').classList.remove('active');
+    }
+    
+    function selectDateOption(btn) {
+      if (!btn) return;
+      
+      document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      selectedDateOption = btn.dataset.date;
+      const customDateInput = document.getElementById('customDate');
+      
+      if (selectedDateOption === 'custom') {
+        customDateInput.style.display = 'block';
+        customDateInput.value = new Date().toISOString().split('T')[0];
+      } else {
+        customDateInput.style.display = 'none';
+      }
+    }
+    
+    function selectRepeatOption(btn) {
+      if (!btn) return;
+      
+      document.querySelectorAll('.repeat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      selectedRepeatOption = btn.dataset.repeat;
+      const customDaysContainer = document.getElementById('customRepeatDays');
+      
+      if (selectedRepeatOption === 'custom' && customDaysContainer) {
+        customDaysContainer.style.display = 'flex';
+      } else if (customDaysContainer) {
+        customDaysContainer.style.display = 'none';
+      }
+    }
+    
+    function toggleDay(dayElement) {
+      dayElement.classList.toggle('active');
+      const day = dayElement.dataset.day;
+      
+      if (dayElement.classList.contains('active')) {
+        if (!selectedDays.includes(day)) {
+          selectedDays.push(day);
+        }
+      } else {
+        selectedDays = selectedDays.filter(d => d !== day);
+      }
+    }
+    
+    function selectIcon(iconElement) {
+      document.querySelectorAll('.icon-option').forEach(i => i.classList.remove('active'));
+      iconElement.classList.add('active');
+      selectedIcon = iconElement.textContent;
+    }
+    
+    function selectColor(colorElement) {
+      document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+      colorElement.classList.add('active');
+      selectedColor = colorElement.dataset.color;
+    }
+    
+    function selectPriority(btn) {
+      if (!btn) return;
+      
+      document.querySelectorAll('.priority-btn').forEach(b => {
+        b.classList.remove('active', 'low', 'medium', 'high');
+      });
+      
+      selectedPriority = btn.dataset.priority;
+      btn.classList.add('active', selectedPriority);
+    }
+    
+    function createCustomItem() {
+      const name = document.getElementById('customName').value.trim();
+      
+      if (!name) {
+        alert('Bitte gib einen Namen ein');
+        return;
+      }
+      
+      const time = document.getElementById('customTime').value;
+      const duration = document.getElementById('customDuration').value;
+      const category = document.getElementById('customCategory').value || 'Eigene';
+      const notes = document.getElementById('customNotes').value;
+      
+      // Determine date
+      let date = new Date();
+      if (selectedDateOption === 'tomorrow') {
+        date.setDate(date.getDate() + 1);
+      } else if (selectedDateOption === 'custom') {
+        date = new Date(document.getElementById('customDate').value);
+      }
+      
+      // Create item object
+      const item = {
+        id: Date.now(),
+        type: customModalType,
+        name: name,
+        icon: selectedIcon,
+        color: selectedColor,
+        category: category,
+        time: time,
+        duration: duration,
+        date: date.toISOString().split('T')[0],
+        repeat: selectedRepeatOption,
+        repeatDays: selectedRepeatOption === 'custom' ? selectedDays : [],
+        priority: selectedPriority,
+        notes: notes,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Add to appropriate list
+      if (customModalType === 'task') {
+        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        tasks.push(item);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      } else {
+        let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+        habits.push(item);
+        localStorage.setItem('habits', JSON.stringify(habits));
+      }
+      
+      // Close modal and refresh view
+      closeCustomModal();
+      
+      // If on timeline view and date matches, refresh
+      if (currentView === 'timeline' && item.date === selectedDate.toISOString().split('T')[0]) {
+        generateTimelineItems();
+      }
+      
+      // Show success message
+      showSuccessMessage(`${customModalType === 'task' ? 'Aufgabe' : 'Gewohnheit'} "${name}" wurde erstellt!`);
+    }
+    
+    function showSuccessMessage(message) {
+      const toast = document.createElement('div');
+      toast.className = 'success-toast';
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideUp 0.3s ease-out;
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideDown 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+    
+    // Add animation keyframes if not already present
+    if (!document.querySelector('#toast-animations')) {
+      const style = document.createElement('style');
+      style.id = 'toast-animations';
+      style.textContent = `
+        @keyframes slideUp {
+          from { transform: translate(-50%, 100px); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideDown {
+          from { transform: translate(-50%, 0); opacity: 1; }
+          to { transform: translate(-50%, 100px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+  </script>
+
+</body>
+</html>

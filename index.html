@@ -2602,6 +2602,133 @@
       background: rgba(255, 255, 255, 0.1);
       transform: scale(0.9);
     }
+    /* ============================================
+       NAVIGATION ENHANCEMENT V2 - SAFE VERSION
+       ============================================ */
+    
+    /* Subtle improvements for date container */
+    .date-text-container {
+      padding: 10px 20px !important;
+      border-radius: 14px !important;
+      background: rgba(255, 255, 255, 0.02) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .date-text-container:hover {
+      transform: translateY(-2px) !important;
+      background: rgba(75, 123, 236, 0.06) !important;
+      box-shadow: 0 6px 16px rgba(75, 123, 236, 0.12) !important;
+    }
+    
+    /* Enhanced month text */
+    .month-text {
+      font-size: 26px !important;
+      font-weight: 800 !important;
+      background: linear-gradient(135deg, #E8E9ED 0%, #94A3B8 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+      letter-spacing: -0.8px !important;
+    }
+    
+    /* Enhanced year text */
+    .year-text {
+      font-weight: 600 !important;
+      letter-spacing: 1.8px !important;
+      opacity: 0.85 !important;
+      margin-top: 4px !important;
+    }
+    
+    /* Better nav buttons */
+    .nav-btn {
+      width: 44px !important;
+      height: 44px !important;
+      border-radius: 14px !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .nav-btn:hover {
+      background: rgba(75, 123, 236, 0.1) !important;
+      border-color: rgba(75, 123, 236, 0.25) !important;
+      color: var(--primary) !important;
+      transform: scale(1.08) !important;
+      box-shadow: 0 6px 16px rgba(75, 123, 236, 0.2) !important;
+    }
+    
+    .nav-btn svg {
+      transition: transform 0.3s !important;
+    }
+    
+    #prevMonth:hover svg {
+      transform: translateX(-2px) !important;
+    }
+    
+    #nextMonth:hover svg {
+      transform: translateX(2px) !important;
+    }
+    
+    /* Enhanced month dots */
+    .month-dots {
+      background: rgba(20, 21, 24, 0.9) !important;
+      backdrop-filter: blur(15px) !important;
+      padding: 8px 10px !important;
+      border-radius: 28px !important;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .month-dot {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .month-dot:hover {
+      background: rgba(75, 123, 236, 0.5) !important;
+      transform: scale(1.6) !important;
+      box-shadow: 0 0 12px rgba(75, 123, 236, 0.4) !important;
+    }
+    
+    .month-dot.active {
+      width: 24px !important;
+      height: 6px !important;
+      border-radius: 4px !important;
+      background: linear-gradient(90deg, #4B7BEC, #3867D6) !important;
+      box-shadow: 0 0 18px rgba(75, 123, 236, 0.5) !important;
+      animation: subtlePulse 2s ease-in-out infinite !important;
+    }
+    
+    @keyframes subtlePulse {
+      0%, 100% { 
+        opacity: 1;
+        box-shadow: 0 0 18px rgba(75, 123, 236, 0.5);
+      }
+      50% { 
+        opacity: 0.9;
+        box-shadow: 0 0 24px rgba(75, 123, 236, 0.7);
+      }
+    }
+    
+    /* Month bar enhancement */
+    .month-bar {
+      background: linear-gradient(180deg, 
+        rgba(20, 21, 24, 0.96) 0%, 
+        rgba(14, 15, 18, 0.92) 100%) !important;
+      backdrop-filter: blur(25px) saturate(150%) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Force icon visibility */
+    .timeline-item-icon {
+      min-width: 36px !important;
+      min-height: 36px !important;
+    }
+    
+    .timeline-item-icon svg {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
   </style>
 </head>
 <body>
@@ -3220,9 +3347,12 @@
       initializeSVGIcons();
       requestAnimationFrame(() => initializeSVGIcons());
       setTimeout(() => initializeSVGIcons(), 0);
+      setTimeout(() => initializeSVGIcons(), 50);
       setTimeout(() => initializeSVGIcons(), 100);
+      setTimeout(() => initializeSVGIcons(), 250);
       setTimeout(() => initializeSVGIcons(), 500);
       setTimeout(() => initializeSVGIcons(), 1000);
+      setTimeout(() => initializeSVGIcons(), 2000);
       
       // Also initialize when window fully loads
       window.addEventListener('load', () => {

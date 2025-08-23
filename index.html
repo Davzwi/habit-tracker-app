@@ -3561,13 +3561,17 @@
     
     function updateProgress() {
       document.querySelectorAll('.time-block').forEach(block => {
-        const tasks = block.querySelectorAll('.task');
-        const completedTasks = block.querySelectorAll('.task.completed');
-        
+        const allTasks = Array.from(block.querySelectorAll('.task'));
+        const tasks = allTasks.filter(task => {
+          const check = task.querySelector('.task-check');
+          return !check || check.style.pointerEvents !== 'none';
+        });
+        const completedTasks = tasks.filter(task => task.classList.contains('completed'));
+
         const progressPercentage = block.querySelector('.progress-percentage');
         const progressInfo = block.querySelector('.progress-info');
         const progressRingFill = block.querySelector('.progress-ring-fill');
-        
+
         // Prüfen ob Tasks vorhanden sind
         if (tasks.length === 0) {
           if (progressPercentage) progressPercentage.textContent = '0%';
@@ -3575,9 +3579,9 @@
           if (progressRingFill) progressRingFill.setAttribute('stroke-dashoffset', '88');
           return;
         }
-        
+
         const percentage = Math.round((completedTasks.length / tasks.length) * 100);
-        
+
         if (progressPercentage) progressPercentage.textContent = `${percentage}%`;
         if (progressInfo) progressInfo.textContent = `${completedTasks.length}/${tasks.length}`;
         if (progressRingFill) {

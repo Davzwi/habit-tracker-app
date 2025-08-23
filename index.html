@@ -3358,6 +3358,73 @@
       
       updateProgress();
     }
+
+    function initializeTaskEditing() {
+      document.querySelectorAll('.task').forEach(task => {
+        if (task.querySelector('.edit-task-btn')) return;
+
+        const actions = document.createElement('div');
+        actions.className = 'task-actions';
+
+        const editBtn = document.createElement('div');
+        editBtn.className = 'edit-task-btn';
+        editBtn.textContent = '✎';
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openEditPrompt(task);
+        });
+
+        actions.appendChild(editBtn);
+        task.appendChild(actions);
+      });
+    }
+
+    function openEditPrompt(task) {
+      const titleEl = task.querySelector('.task-title');
+      const subtitleEl = task.querySelector('.task-subtitle');
+      const timeEl = task.querySelector('.task-time');
+
+      const newTitle = prompt('Aufgabe bearbeiten', titleEl?.textContent || '');
+      if (newTitle !== null && titleEl) titleEl.textContent = newTitle.trim();
+
+      const newSubtitle = prompt('Beschreibung bearbeiten', subtitleEl?.textContent || '');
+      if (newSubtitle !== null && subtitleEl) subtitleEl.textContent = newSubtitle.trim();
+
+      const newTime = prompt('Zeit bearbeiten (HH:MM)', timeEl?.textContent || '');
+      if (newTime !== null && timeEl) timeEl.textContent = newTime.trim();
+
+      saveEditedTasks();
+    }
+
+    function saveEditedTasks() {
+      const dateKey = `edited_tasks_${selectedDate.toISOString().split('T')[0]}`;
+      const data = [];
+      document.querySelectorAll('#timelineView .task').forEach(task => {
+        data.push({
+          title: task.querySelector('.task-title')?.textContent || '',
+          subtitle: task.querySelector('.task-subtitle')?.textContent || '',
+          time: task.querySelector('.task-time')?.textContent || ''
+        });
+      });
+      localStorage.setItem(dateKey, JSON.stringify(data));
+    }
+
+    function loadEditedTasks() {
+      const dateKey = `edited_tasks_${selectedDate.toISOString().split('T')[0]}`;
+      const data = JSON.parse(localStorage.getItem(dateKey) || 'null');
+      if (!data) return;
+      const tasks = document.querySelectorAll('#timelineView .task');
+      tasks.forEach((task, index) => {
+        const item = data[index];
+        if (!item) return;
+        const titleEl = task.querySelector('.task-title');
+        const subtitleEl = task.querySelector('.task-subtitle');
+        const timeEl = task.querySelector('.task-time');
+        if (titleEl) titleEl.textContent = item.title;
+        if (subtitleEl) subtitleEl.textContent = item.subtitle;
+        if (timeEl) timeEl.textContent = item.time;
+      });
+    }
     
     // SVG Icon Library
     const svgIcons = {
@@ -3607,6 +3674,8 @@
 
       // Load saved task states for the selected date
       loadTaskStates();
+      initializeTaskEditing();
+      loadEditedTasks();
       
       // Heute-Button verstecken wenn bereits heute
       const todayBtn = document.querySelector('.today-btn-nav');

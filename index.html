@@ -3063,17 +3063,25 @@
 
     // Initialize SVG icons
     function initializeSVGIcons() {
-      console.log('Initializing SVG icons...');
+      console.log('=== INITIALIZING SVG ICONS ===');
       
       // Specifically target timeline icons first with aggressive styling
       const timelineIcons = document.querySelectorAll('.timeline-item-icon[data-icon]');
       console.log('Found timeline icons:', timelineIcons.length);
       
-      timelineIcons.forEach(element => {
+      if (timelineIcons.length === 0) {
+        console.warn('No timeline icons found! Checking for elements...');
+        console.log('All .timeline-item-icon elements:', document.querySelectorAll('.timeline-item-icon').length);
+        console.log('All [data-icon] elements:', document.querySelectorAll('[data-icon]').length);
+      }
+      
+      timelineIcons.forEach((element, index) => {
         const iconName = element.dataset.icon;
-        console.log('Loading timeline icon:', iconName);
+        console.log(`Loading icon ${index + 1}/${timelineIcons.length}: ${iconName}`);
         const svgContent = getSVGIcon(iconName);
+        
         if (svgContent) {
+          console.log(`Got SVG content for ${iconName}`);
           // Clear and set content
           element.innerHTML = '';
           element.innerHTML = svgContent;
@@ -3081,17 +3089,27 @@
           // Force SVG to be visible with important styles
           const svg = element.querySelector('svg');
           if (svg) {
+            console.log(`Styling SVG for ${iconName}`);
             // Set attributes directly
             svg.setAttribute('width', '20');
             svg.setAttribute('height', '20');
             svg.setAttribute('viewBox', '0 0 24 24');
             svg.setAttribute('fill', 'none');
-            svg.setAttribute('stroke', 'white');
+            svg.setAttribute('stroke', 'currentColor');
             svg.setAttribute('stroke-width', '2');
             
             // Apply aggressive inline styles
-            svg.style.cssText = 'display: block !important; width: 20px !important; height: 20px !important; stroke: white !important; stroke-width: 2 !important; fill: none !important; opacity: 1 !important; visibility: visible !important; position: relative !important; z-index: 1 !important;';
+            svg.style.cssText = 'display: block !important; width: 20px !important; height: 20px !important; color: white !important; stroke: currentColor !important; stroke-width: 2 !important; fill: none !important; opacity: 1 !important; visibility: visible !important; position: relative !important; z-index: 1 !important;';
+            
+            // Also ensure parent is visible
+            element.style.display = 'flex';
+            element.style.visibility = 'visible';
+            element.style.opacity = '1';
+          } else {
+            console.error(`No SVG found after adding content for ${iconName}`);
           }
+        } else {
+          console.error(`No SVG content returned for ${iconName}`);
         }
       });
       
@@ -3186,11 +3204,18 @@
       checkTodayButtonVisibility();
       setupEventListeners();
       
-      // Initialize SVG icons multiple times to ensure they load
+      // Initialize SVG icons immediately and multiple times to ensure they load
+      initializeSVGIcons();
+      requestAnimationFrame(() => initializeSVGIcons());
       setTimeout(() => initializeSVGIcons(), 0);
       setTimeout(() => initializeSVGIcons(), 100);
       setTimeout(() => initializeSVGIcons(), 500);
       setTimeout(() => initializeSVGIcons(), 1000);
+      
+      // Also initialize when window fully loads
+      window.addEventListener('load', () => {
+        initializeSVGIcons();
+      });
       
       // Update active tasks immediately and every minute
       updateActiveTasksByTime();
